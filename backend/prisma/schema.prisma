@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Używamy PostgreSQL
+}
+
+// 1. Tabela Użytkowników (Logowanie)
+model User {
+  id          Int          @id @default(autoincrement())
+  email       String       @unique
+  password    String       // Tu będziemy trzymać zahashowane hasło (nigdy czystym tekstem!)
+  name        String
+  memberships Membership[] // Relacja: Użytkownik może należeć do mieszkań
+}
+
+// 2. Tabela Mieszkań (Pokoje)
+model Apartment {
+  id         Int          @id @default(autoincrement())
+  name       String
+  inviteCode String       @unique // Unikalny kod do dołączania (np. X7B9Q2)
+  currency   String       @default("PLN")
+  members    Membership[] // Relacja: Mieszkanie ma wielu mieszkańców
+}
+
+// 3. Tabela Łącząca (Kto jest w jakim mieszkaniu i jaką ma rolę)
+model Membership {
+  id          Int       @id @default(autoincrement())
+  role        Role      @default(MEMBER)
+  
+  userId      Int
+  apartmentId Int
+  
+  user        User      @relation(fields: [userId], references: [id])
+  apartment   Apartment @relation(fields: [apartmentId], references: [id])
+
+  // Zabezpieczenie: dany użytkownik może dołączyć do danego mieszkania tylko raz
+  @@unique([userId, apartmentId]) 
+}
+
+// Dostępne role w mieszkaniu
+enum Role {
+  ADMIN  // Ten, kto stworzył pokój
+  MEMBER // Ten, kto dołączył z kodu
+}
