@@ -1,37 +1,47 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt'; 
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private jwtService: JwtService) {}
 
   async register(dto: RegisterDto) {
-    // 1. Sprawdzenie, czy email jest już w bazie
-    const existingUser = await this.prisma.user.findUnique({
+    const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (existingUser) throw new ConflictException('Użytkownik już istnieje!');
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const newUser = await this.prisma.user.create({
+      data: { email: dto.email, name: dto.name, password: hashedPassword },
+    });
+
+    const { password, ...userWithoutPassword } = newUser;
+    return userWithoutPassword;
+  }
+
+  // --- TO JEST NOWA CZĘŚĆ (Logowanie) ---
+  async login(dto: LoginDto) {
+    const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
-    if (existingUser) {
-      throw new ConflictException('Użytkownik z tym adresem email już istnieje!');
+    if (!user || !(await bcrypt.compare(dto.password, user.password))) {
+      throw new UnauthorizedException('Nieprawidłowy email lub hasło');
     }
 
-    // 2. Szyfrowanie hasła (10 to tzw. salt rounds - standardowy poziom bezpieczeństwa)
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const payload = { sub: user.id, email: user.email };
+    const token = await this.jwtService.signAsync(payload);
 
-    // 3. Zapisanie użytkownika w Supabase
-    const newUser = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        name: dto.name,
-        password: hashedPassword,
-      },
-    });
-
-    // 4. Oddzielenie hasła od reszty danych (nie chcemy go odsyłać na frontend!)
-    const { password, ...userWithoutPassword } = newUser;
-    
-    return userWithoutPassword;
+    return {
+      access_token: token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }
+    };
   }
 }

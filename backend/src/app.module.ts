@@ -6,9 +6,19 @@ import { ApartmentsModule } from './apartments/apartments.module';
 import { FinancesModule } from './finances/finances.module';
 import { ShoppingModule } from './shopping/shopping.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [AuthModule, ApartmentsModule, FinancesModule, ShoppingModule, PrismaModule],
+  imports: [
+       AuthModule,
+       ApartmentsModule,
+       FinancesModule,
+       ShoppingModule,
+       PrismaModule,
+       ConfigModule.forRoot({
+        isGlobal: true, 
+      }),
+      ],
   controllers: [AppController],
   providers: [AppService],
 })

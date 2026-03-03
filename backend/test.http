@@ -1,8 +1,22 @@
+### Rejestracja (To już mamy)
 POST http://localhost:3000/auth/register
 Content-Type: application/json
 
 {
-  "email": "test@homie.pl",
-  "password": "mojeSuperHaslo123",
-  "name": "Jan Kowalski"
+  "email": "janek@homie.pl",
+  "password": "haslo123",
+  "name": "Janek"
 }
+
+### LOGOWANIE (Testujemy to!)
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "janek@homie.pl",
+  "password": "haslo123"
+}
+
+### Test zabezpieczonego profilu (wymaga tokena)
+GET http://localhost:3000/auth/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiamFuZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1MzA0ODgsImV4cCI6MTc3MjUzNDA4OH0.wkwAJN3KocoWV19SbAUA3oN_br1OIhDnJRBQroa_T0w
