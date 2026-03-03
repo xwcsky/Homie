@@ -3,9 +3,9 @@ POST http://localhost:3000/auth/register
 Content-Type: application/json
 
 {
-  "email": "janek@homie.pl",
+  "email": "marek@homie.pl",
   "password": "haslo123",
-  "name": "Janek"
+  "name": "Marek"
 }
 
 ### LOGOWANIE (Testujemy to!)
@@ -13,10 +13,77 @@ POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-  "email": "janek@homie.pl",
+  "email": "marek@homie.pl",
   "password": "haslo123"
 }
 
 ### Test zabezpieczonego profilu (wymaga tokena)
 GET http://localhost:3000/auth/profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoiamFuZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1MzA0ODgsImV4cCI6MTc3MjUzNDA4OH0.wkwAJN3KocoWV19SbAUA3oN_br1OIhDnJRBQroa_T0w
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiamFuZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1NTIyNTYsImV4cCI6MTc3MjU1NTg1Nn0.-xGAPRSeMJ8Nwbo2veKOG73w1mct1-AHZTCeYGyS0rQ
+
+### Stwórz nowe mieszkanie (wymaga Tokena)
+POST http://localhost:3000/flats
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiamFuZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1NTIyNTYsImV4cCI6MTc3MjU1NTg1Nn0.-xGAPRSeMJ8Nwbo2veKOG73w1mct1-AHZTCeYGyS0rQ
+
+{
+  "name": "Mieszkanie Studenckie 404"
+}
+
+### Krok 3: Marek dołącza do mieszkania Janka (Wklej TOKEN MARKA)
+POST http://localhost:3000/flats/join
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoibWFyZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1NTI1MjUsImV4cCI6MTc3MjU1NjEyNX0.WWZn9DyVV5tGtvbuhbIHi9uyo2zrHnCBhK9V4veS1DA
+
+{
+  "code": "SDZFBG" 
+}
+
+### Sprawdź moje mieszkanie i współlokatorów
+GET http://localhost:3000/flats/my
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoibWFyZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1NTI1MjUsImV4cCI6MTc3MjU1NjEyNX0.WWZn9DyVV5tGtvbuhbIHi9uyo2zrHnCBhK9V4veS1DA
+
+### Dodaj zadanie dla Marka (Marek ma ID 2)
+POST http://localhost:3000/tasks
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiamFuZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1NTMzNDAsImV4cCI6MTc3MjU1Njk0MH0.pSxIqfzCBL3IyOJRXzzn8hV_LYsiKVBa6WyICJl4pnM
+
+{
+  "title": "Wynieś śmieci (te śmierdzące)",
+  "assignedToId": 2
+}
+
+### Zobacz listę zadań w mieszkaniu
+GET http://localhost:3000/tasks
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiamFuZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1NTMzNDAsImV4cCI6MTc3MjU1Njk0MH0.pSxIqfzCBL3IyOJRXzzn8hV_LYsiKVBa6WyICJl4pnM
+
+### Marek odznacza zadanie jako ZROBIONE (wymaga ID zadania, np. 1)
+PATCH http://localhost:3000/tasks/2
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoibWFyZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1NTM2MjYsImV4cCI6MTc3MjU1NzIyNn0.qo-4uElHQEoG2OcFaYF4h4eghHmX7P-6VrE5QxuYKlk
+
+{
+  "isDone": true
+}
+
+### Janek usuwa zadanie (bo już zrobione)
+DELETE http://localhost:3000/tasks/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiamFuZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1NTMzNDAsImV4cCI6MTc3MjU1Njk0MH0.pSxIqfzCBL3IyOJRXzzn8hV_LYsiKVBa6WyICJl4pnM
+
+### Janek kupuje pizze dla wszystkich
+POST http://localhost:3000/bills
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiamFuZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1NTMzNDAsImV4cCI6MTc3MjU1Njk0MH0.pSxIqfzCBL3IyOJRXzzn8hV_LYsiKVBa6WyICJl4pnM
+
+{
+  "title": "Pizza Hawajska XL",
+  "amount": 45.50
+}
+
+### Zobacz listę wydatków
+GET http://localhost:3000/bills
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiamFuZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1NTMzNDAsImV4cCI6MTc3MjU1Njk0MH0.pSxIqfzCBL3IyOJRXzzn8hV_LYsiKVBa6WyICJl4pnM
+
+### Podsumowanie wydatków (Kto komu wisi?)
+GET http://localhost:3000/bills/summary
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiamFuZWtAaG9taWUucGwiLCJpYXQiOjE3NzI1NTMzNDAsImV4cCI6MTc3MjU1Njk0MH0.pSxIqfzCBL3IyOJRXzzn8hV_LYsiKVBa6WyICJl4pnM

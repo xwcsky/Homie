@@ -3,44 +3,75 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // Używamy PostgreSQL
+  provider = "postgresql"
 }
 
-// 1. Tabela Użytkowników (Logowanie)
+// 1. Użytkownik
 model User {
   id          Int          @id @default(autoincrement())
   email       String       @unique
-  password    String       // Tu będziemy trzymać zahashowane hasło (nigdy czystym tekstem!)
-  name        String
-  memberships Membership[] // Relacja: Użytkownik może należeć do mieszkań
+  password    String
+  name        String?
+  memberships Membership[]
+  tasks       Task[]
+  bills       Bill[]
 }
 
-// 2. Tabela Mieszkań (Pokoje)
-model Apartment {
-  id         Int          @id @default(autoincrement())
-  name       String
-  inviteCode String       @unique // Unikalny kod do dołączania (np. X7B9Q2)
-  currency   String       @default("PLN")
-  members    Membership[] // Relacja: Mieszkanie ma wielu mieszkańców
+// 2. Mieszkanie 
+model Flat {
+  id        Int      @id @default(autoincrement())
+  name      String   // Np. "Mieszkanie Studenckie"
+  code      String   @unique // Kod zaproszenia (np. X7B9Q2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  tasks       Task[]
+  bills       Bill[]
 }
 
-// 3. Tabela Łącząca (Kto jest w jakim mieszkaniu i jaką ma rolę)
+// 3. Tabela Łącząca (Kto, gdzie i z jaką rolą)
 model Membership {
-  id          Int       @id @default(autoincrement())
-  role        Role      @default(MEMBER)
-  
-  userId      Int
-  apartmentId Int
-  
-  user        User      @relation(fields: [userId], references: [id])
-  apartment   Apartment @relation(fields: [apartmentId], references: [id])
+  id     Int  @id @default(autoincrement())
+  role   Role @default(MEMBER)
+  userId Int
+  flatId Int  
+  user   User @relation(fields: [userId], references: [id])
+  flat   Flat @relation(fields: [flatId], references: [id])
 
-  // Zabezpieczenie: dany użytkownik może dołączyć do danego mieszkania tylko raz
-  @@unique([userId, apartmentId]) 
+  @@unique([userId, flatId]) 
 }
 
-// Dostępne role w mieszkaniu
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String   // Np. "Wynieś śmieci"
+  description String?  // Np. "Tylko te segregowane"
+  isDone      Boolean  @default(false)
+  
+  flatId      Int
+  flat        Flat     @relation(fields: [flatId], references: [id])
+
+  assignedToId Int?    // Może być null (nikt nie wziął zadania)
+  assignedTo   User?   @relation(fields: [assignedToId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+model Bill {
+  id          Int      @id @default(autoincrement())
+  title       String   // Np. "Internet UPC"
+  amount      Float    // Kwota (np. 59.99)
+  
+  payerId     Int      // Kto płacił?
+  payer       User     @relation(fields: [payerId], references: [id])
+
+  flatId      Int      // W jakim mieszkaniu?
+  flat        Flat     @relation(fields: [flatId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
 enum Role {
-  ADMIN  // Ten, kto stworzył pokój
-  MEMBER // Ten, kto dołączył z kodu
+  ADMIN  // Twórca mieszkania
+  MEMBER // Lokator
 }

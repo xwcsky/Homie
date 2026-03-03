@@ -7,6 +7,9 @@ import { FinancesModule } from './finances/finances.module';
 import { ShoppingModule } from './shopping/shopping.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
+import { FlatsModule } from './flats/flats.module';
+import { TasksModule } from './tasks/tasks.module';
+import { BillsModule } from './bills/bills.module';
 
 @Module({
   imports: [
@@ -18,6 +21,9 @@ import { ConfigModule } from '@nestjs/config';
        ConfigModule.forRoot({
         isGlobal: true, 
       }),
+       FlatsModule,
+       TasksModule,
+       BillsModule,
       ],
   controllers: [AppController],
   providers: [AppService],
