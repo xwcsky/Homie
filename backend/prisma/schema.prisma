@@ -15,6 +15,7 @@ model User {
   memberships Membership[]
   tasks       Task[]
   bills       Bill[]
+  shoppingItems ShoppingItem[]
 }
 
 // 2. Mieszkanie 
@@ -28,6 +29,7 @@ model Flat {
   memberships Membership[]
   tasks       Task[]
   bills       Bill[]
+  shoppingItems ShoppingItem[]
 }
 
 // 3. Tabela Łącząca (Kto, gdzie i z jaką rolą)
@@ -67,6 +69,20 @@ model Bill {
 
   flatId      Int      // W jakim mieszkaniu?
   flat        Flat     @relation(fields: [flatId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+model ShoppingItem {
+  id          Int      @id @default(autoincrement())
+  name        String   // np. "Mleko", "Papier toaletowy"
+  isBought    Boolean  @default(false)
+  
+  flatId      Int
+  flat        Flat     @relation(fields: [flatId], references: [id])
+
+  buyerId     Int?     // Może być null (dopóki ktoś tego nie kupi)
+  buyer       User?    @relation(fields: [buyerId], references: [id])
 
   createdAt   DateTime @default(now())
 }

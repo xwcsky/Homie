@@ -17,7 +17,6 @@ import { OnboardingComponent } from './features/auth/onboarding/onboarding.compo
 @NgModule({
   declarations: [
     AppComponent,
-    ShoppingListComponent,
     NavbarComponent,
   ],
   imports: [
@@ -27,6 +26,7 @@ import { OnboardingComponent } from './features/auth/onboarding/onboarding.compo
     LoginComponent,
     DashboardComponent,
     ExpenseListComponent,
+    ShoppingListComponent,
     ChoresBoardComponent,
     OnboardingComponent,
     HttpClientModule
