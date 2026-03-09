@@ -7,13 +7,21 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class FlatsService {
-  private apiUrl = environment.apiUrl + '/flats'; 
+  private apiUrl = environment.apiUrl + '/flats';
 
-  // Wstrzykujemy HttpClient przez konstruktor (klasycznie)
   constructor(private http: HttpClient) {}
 
   getMyFlat(): Observable<any> {
-    // Tu nie dodajemy nagłówków - Interceptor zrobi to za nas!
     return this.http.get<any>(`${this.apiUrl}/my`);
+  }
+
+  // NOWE: Tworzenie mieszkania
+  createFlat(name: string): Observable<any> {
+    return this.http.post<any>(this.apiUrl, { name });
+  }
+
+  // NOWE: Dołączanie do mieszkania
+  joinFlat(code: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/join`, { code });
   }
 }

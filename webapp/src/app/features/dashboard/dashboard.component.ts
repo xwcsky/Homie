@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common'; // Ważne dla *ngIf, *ngFor
+import { CommonModule } from '@angular/common'; 
+import { Router } from '@angular/router';
 import { FlatsService } from 'src/app/flats/flats.service';
 
 @Component({
@@ -37,17 +38,20 @@ export class DashboardComponent implements OnInit {
   flatData: any = null;
   errorMessage = '';
 
-  constructor(private flatsService: FlatsService) {}
+  constructor(private flatsService: FlatsService, private router: Router) {}
 
   ngOnInit() {
     this.flatsService.getMyFlat().subscribe({
       next: (data) => {
-        console.log('Mieszkanie pobrane:', data);
-        this.flatData = data;
+        if (!data) {
+          this.router.navigate(['/onboarding']);
+        } else {
+          this.flatData = data;
+        }
       },
       error: (error) => {
         console.error('Błąd:', error);
-        this.errorMessage = 'Nie udało się pobrać danych. Czy jesteś zalogowany?';
+        this.router.navigate(['/onboarding']);
       }
     });
   }

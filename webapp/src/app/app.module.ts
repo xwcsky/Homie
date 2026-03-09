@@ -12,21 +12,23 @@ import { ChoresBoardComponent } from './features/chores/chores-board/chores-boar
 import { NavbarComponent } from './shared/navbar/navbar.component';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http'
 import { AuthInterceptor } from './auth/auth.interceptor';
+import { OnboardingComponent } from './features/auth/onboarding/onboarding.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    RegisterComponent,
     ShoppingListComponent,
-    NavbarComponent
+    NavbarComponent,
   ],
   imports: [
+    RegisterComponent,
     BrowserModule,
     AppRoutingModule,
     LoginComponent,
     DashboardComponent,
     ExpenseListComponent,
     ChoresBoardComponent,
+    OnboardingComponent,
     HttpClientModule
   ],
   providers: [

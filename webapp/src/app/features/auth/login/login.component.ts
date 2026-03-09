@@ -1,13 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // Potrzebne do [(ngModel)]
+import { FormsModule } from '@angular/forms'; 
 import { AuthService } from 'src/app/auth/auth.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule], // Importujemy FormsModule
+  imports: [CommonModule, FormsModule, RouterModule], 
   template: `
     <div class="login-container">
       <h2>Zaloguj się do Homie 🏠</h2>
@@ -27,6 +27,10 @@ import { Router } from '@angular/router';
       </form>
       
       <p *ngIf="errorMessage" style="color: red">{{ errorMessage }}</p>
+
+     <div style="margin-top: 20px; text-align: center; border-top: 1px solid #eee; padding-top: 15px;">
+     Nie masz jeszcze konta? <a routerLink="/register" style="color: #007bff; font-weight: bold; text-decoration: none;">Zarejestruj się</a>
+     </div>
     </div>
   `,
   styles: [`
