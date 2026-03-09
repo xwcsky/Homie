@@ -50,6 +50,10 @@ import { Bill, Summary } from './bill-model';
           </div>
         </li>
       </ul>
+
+      <button (click)="clearDebts()" style="background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px;">
+  🚨  Zakończ miesiąc (Wyzeruj długi)
+      </button>
       
       <p *ngIf="bills.length === 0">Brak wydatków. Tanio żyjecie! 🤑</p>
     </div>
@@ -105,4 +109,19 @@ export class ExpenseListComponent implements OnInit {
       this.refreshData(); // Kluczowe! Żeby od razu zaktualizował się bilans
     });
   }
+
+  clearDebts() {
+    const isConfirmed = confirm('⚠️ UWAGA! Czy na pewno rozliczyliście się w gotówce/Blikiem? Ta akcja bezpowrotnie usunie wszystkie rachunki i wyzeruje bilanse!');
+    
+    if (isConfirmed) {
+      this.financesService.clearDebts().subscribe({
+        next: () => {
+          alert('Miesiąc zakończony! Długi wyzerowane. 🍻');
+          this.refreshData(); // Odświeżamy listę (powinna być pusta)
+        },
+        error: () => alert('Nie udało się wyzerować długów.')
+      });
+    }
+  }
+
 }

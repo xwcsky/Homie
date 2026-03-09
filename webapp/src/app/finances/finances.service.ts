@@ -26,4 +26,9 @@ export class FinancesService {
   getSummary(): Observable<Summary> {
     return this.http.get<Summary>(`${this.apiUrl}/summary`);
   }
+
+  clearDebts(): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/clear`);
+  }
+
 }

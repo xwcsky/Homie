@@ -18,8 +18,8 @@ export class ChoresService {
   }
 
   // 2. Dodaj nowe zadanie
-  addChore(title: string): Observable<Chore> {
-    return this.http.post<Chore>(this.apiUrl, { title });
+  addChore(title: string, assignedToId?: number, date?: string, isWeekly?: boolean): Observable<any> {
+    return this.http.post<any>(this.apiUrl, { title, assignedToId, date, isWeekly });
   }
 
   // 3. Zmień status (Zrobione/Niezrobione)

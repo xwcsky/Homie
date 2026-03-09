@@ -101,4 +101,17 @@ export class BillsService {
       orderBy: { createdAt: 'desc' } // Najnowsze na górze
     });
   }
+
+  async clearAll(userId: number) {
+    // 1. Pobieramy ID mieszkania (użyj swojej metody na pobieranie flatId)
+    const membership = await this.prisma.membership.findFirst({
+      where: { userId },
+    });
+    if (!membership) throw new BadRequestException('Brak mieszkania');
+
+    // 2. Usuwamy wszystkie rachunki w tym mieszkaniu
+    return this.prisma.bill.deleteMany({
+      where: { flatId: membership.flatId },
+    });
+  }
 }

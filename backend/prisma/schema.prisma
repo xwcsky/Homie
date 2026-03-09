@@ -49,7 +49,7 @@ model Task {
   title       String   // Np. "Wynieś śmieci"
   description String?  // Np. "Tylko te segregowane"
   isDone      Boolean  @default(false)
-  
+  date        DateTime?
   flatId      Int
   flat        Flat     @relation(fields: [flatId], references: [id])
 

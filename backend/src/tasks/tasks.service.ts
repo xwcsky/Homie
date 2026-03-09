@@ -7,41 +7,68 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 export class TasksService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: number, createTaskDto: CreateTaskDto) {
-    // 1. Najpierw musimy wiedzieć, w jakim mieszkaniu jest ten użytkownik
+  private async getFlatId(userId: number) {
     const membership = await this.prisma.membership.findFirst({
-      where: { userId: userId },
+      where: { userId },
     });
+    if (!membership) throw new BadRequestException('Brak mieszkania');
+    return membership.flatId;
+  }
 
-    if (!membership) {
-      throw new BadRequestException('Musisz należeć do mieszkania, żeby dodawać zadania!');
+  // Zmodyfikowana metoda create
+  async create(userId: number, title: string, assignedToId?: number, date?: string, isWeekly?: boolean) {
+    const flatId = await this.getFlatId(userId);
+    const startDate = date ? new Date(date) : null;
+
+    // Jeśli ktoś zaznaczył "Cały tydzień" i podał datę startową:
+    if (isWeekly && startDate) {
+      const tasksToCreate: any[] = [];
+      
+      // Pętla tworząca zadania na 7 kolejnych dni
+      for (let i = 0; i < 7; i++) {
+        const taskDate = new Date(startDate);
+        taskDate.setDate(taskDate.getDate() + i); // Dodajemy 'i' dni
+        
+        tasksToCreate.push({
+          title,
+          flatId,
+          assignedToId: assignedToId ? Number(assignedToId) : null,
+          date: taskDate,
+        });
+      }
+      
+      // Tworzymy wszystkie 7 zadań naraz (wydajność!)
+      await this.prisma.task.createMany({ data: tasksToCreate });
+      return { message: 'Utworzono zadania na cały tydzień' };
+      
+    } else {
+      // Standardowe dodawanie pojedynczego zadania
+      return this.prisma.task.create({
+        data: { 
+          title, 
+          flatId,
+          assignedToId: assignedToId ? Number(assignedToId) : null,
+          date: startDate 
+        },
+        include: { 
+          assignedTo: { select: { name: true, email: true } } 
+        }
+      });
     }
-
-    // 2. Tworzymy zadanie w tym mieszkaniu
-    return this.prisma.task.create({
-      data: {
-        title: createTaskDto.title,
-        flatId: membership.flatId, // <--- Przypisujemy do mieszkania Janka
-        assignedToId: createTaskDto.assignedToId, // <--- Przypisujemy do Marka (jeśli podano)
-      },
-    });
   }
 
   // Pobierz wszystkie zadania z mojego mieszkania
   async findAllMyTasks(userId: number) {
-    const membership = await this.prisma.membership.findFirst({
-      where: { userId: userId },
-    });
-
-    if (!membership) return [];
-
+    const flatId = await this.getFlatId(userId);
     return this.prisma.task.findMany({
-      where: { flatId: membership.flatId },
-      include: {
-        assignedTo: { // Chcemy widzieć imię osoby przypisanej
-          select: { name: true, email: true }
-        }
-      }
+      where: { flatId },
+      include: { 
+        assignedTo: { select: { name: true, email: true } } 
+      },
+      orderBy: [
+        { date: 'asc' }, // Najpierw sortujemy po dacie rosnąco
+        { createdAt: 'desc' }
+      ]
     });
   }
 

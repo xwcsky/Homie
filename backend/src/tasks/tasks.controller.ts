@@ -10,8 +10,14 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
-  create(@Request() req, @Body() createTaskDto: CreateTaskDto) {
-    return this.tasksService.create(req.user.userId, createTaskDto);
+  create(
+    @Request() req, 
+    @Body('title') title: string,
+    @Body('assignedToId') assignedToId?: number,
+    @Body('date') date?: string,
+    @Body('isWeekly') isWeekly?: boolean 
+  ) {
+    return this.tasksService.create(req.user.userId, title, assignedToId, date, isWeekly);
   }
 
   @Get()

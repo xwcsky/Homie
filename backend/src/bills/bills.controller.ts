@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Delete } from '@nestjs/common';
 import { BillsService } from './bills.service';
 import { CreateBillDto } from './dto/create-bill.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -7,6 +7,11 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @Controller('bills')
 export class BillsController {
   constructor(private readonly billsService: BillsService) {}
+
+  @Delete('clear')
+  clearAll(@Request() req) {
+    return this.billsService.clearAll(req.user.userId);
+  }
 
   @Get('summary')
   getSummary(@Request() req) {
@@ -24,4 +29,6 @@ export class BillsController {
   findAll(@Request() req) {
     return this.billsService.findAll(req.user.userId);
   }
+
+  
 }
