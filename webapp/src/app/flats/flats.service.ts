@@ -24,4 +24,13 @@ export class FlatsService {
   joinFlat(code: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/join`, { code });
   }
+
+  updateBoard(data: { wifiPassword?: string; bankAccount?: string; boardNotes?: string }): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/board`, data);
+  }
+
+  generateNewCode(): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/generate-code`, {});
+  }
+
 }

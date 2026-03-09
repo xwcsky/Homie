@@ -23,6 +23,18 @@ export class FlatsController {
     return this.flatsService.findMyFlat(req.user.userId);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Patch('board')
+  updateBoard(@Request() req, @Body() body: any) {
+    return this.flatsService.updateBoard(req.user.userId, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('generate-code')
+  generateNewCode(@Request() req) {
+    return this.flatsService.generateNewCode(req.user.userId);
+  }
+
   @Get()
   findAll() {
     return this.flatsService.findAll();

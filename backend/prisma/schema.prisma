@@ -25,6 +25,9 @@ model Flat {
   code      String   @unique // Kod zaproszenia (np. X7B9Q2)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  wifiPassword  String?
+  bankAccount   String?
+  boardNotes    String?
 
   memberships Membership[]
   tasks       Task[]

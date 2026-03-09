@@ -9,12 +9,16 @@ import { ExpenseListComponent } from './features/finances/expense-list/expense-l
 import { ShoppingListComponent } from './features/shopping/shopping-list/shopping-list.component';
 import { ChoresBoardComponent } from './features/chores/chores-board/chores-board.component';
 import { OnboardingComponent } from './features/auth/onboarding/onboarding.component';
+import { BoardComponent } from './features/board/board.component';
+import { SettingsComponent } from './features/settings/settings.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'board', component: BoardComponent }, 
   { path: 'onboarding', component: OnboardingComponent },
+  { path: 'settings', component: SettingsComponent }, 
   { path: 'dashboard', component: DashboardComponent },
   { path: 'finances', component: ExpenseListComponent },
   { path: 'shopping', component: ShoppingListComponent },

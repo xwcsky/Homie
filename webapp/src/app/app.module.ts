@@ -13,11 +13,13 @@ import { NavbarComponent } from './shared/navbar/navbar.component';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http'
 import { AuthInterceptor } from './auth/auth.interceptor';
 import { OnboardingComponent } from './features/auth/onboarding/onboarding.component';
+import { BoardComponent } from './features/board/board.component';
+import { SettingsComponent } from './features/settings/settings.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    NavbarComponent,
+    NavbarComponent
   ],
   imports: [
     RegisterComponent,
@@ -25,10 +27,12 @@ import { OnboardingComponent } from './features/auth/onboarding/onboarding.compo
     AppRoutingModule,
     LoginComponent,
     DashboardComponent,
+    SettingsComponent,
     ExpenseListComponent,
     ShoppingListComponent,
     ChoresBoardComponent,
     OnboardingComponent,
+    BoardComponent,
     HttpClientModule
   ],
   providers: [

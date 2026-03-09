@@ -72,6 +72,25 @@ export class FlatsService {
     }
   }
 
+// --- NOWA METODA: Generowanie nowego kodu zaproszenia ---
+async generateNewCode(userId: number) {
+  const membership = await this.prisma.membership.findFirst({
+    where: { userId },
+  });
+  if (!membership) throw new BadRequestException('Brak mieszkania');
+
+  // Tworzymy nowy, losowy 6-znakowy kod (litery i cyfry)
+  const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+  // Zapisujemy nowy kod w bazie
+  const updatedFlat = await this.prisma.flat.update({
+    where: { id: membership.flatId },
+    data: { code: newCode },
+  });
+
+  return { message: 'Nowy kod wygenerowany', code: updatedFlat.code };
+}
+
   async findMyFlat(userId: number) {
     return this.prisma.flat.findFirst({
       where: {
@@ -94,6 +113,24 @@ export class FlatsService {
           },
         },
       },
+    });
+  }
+
+  async updateBoard(userId: number, data: { wifiPassword?: string; bankAccount?: string; boardNotes?: string }) {
+    // Sprawdzamy, do jakiego mieszkania należy użytkownik
+    const membership = await this.prisma.membership.findFirst({
+      where: { userId },
+    });
+    if (!membership) throw new BadRequestException('Brak mieszkania');
+
+    // Aktualizujemy dane mieszkania
+    return this.prisma.flat.update({
+      where: { id: membership.flatId },
+      data: {
+        wifiPassword: data.wifiPassword,
+        bankAccount: data.bankAccount,
+        boardNotes: data.boardNotes,
+      }
     });
   }
 

@@ -48,7 +48,8 @@ import { Chore } from './chores.model';
       </div>
 
       <div class="calendar-sidebar">
-        <div class="calendar-card">
+        
+        <div class="sidebar-card">
           <div class="calendar-header">
             <button (click)="changeMonth(-1)">◀</button>
             <h3>{{ monthNames[currentDate.getMonth()] }} {{ currentDate.getFullYear() }}</h3>
@@ -59,30 +60,39 @@ import { Chore } from './chores.model';
             <div class="day-name">Pn</div><div class="day-name">Wt</div><div class="day-name">Śr</div>
             <div class="day-name">Cz</div><div class="day-name">Pt</div><div class="day-name">Sb</div><div class="day-name">Nd</div>
 
-            <div 
-              *ngFor="let day of calendarDays" 
-              class="calendar-day" 
-              [class.empty]="day.empty" 
-              [class.today]="day.isToday"
-              [title]="day.tooltip"
-            >
+            <div *ngFor="let day of calendarDays" class="calendar-day" [class.empty]="day.empty" [class.today]="day.isToday" [title]="day.tooltip">
               <span *ngIf="!day.empty">{{ day.dayNumber }}</span>
-              
               <div class="dots" *ngIf="!day.empty && day.tasks.length > 0">
                 <div *ngFor="let t of day.tasks" class="dot" [class.dot-done]="t.isDone"></div>
               </div>
             </div>
           </div>
         </div>
+
+        <div class="sidebar-card ranking-card">
+          <h3>🏆 Top Sprzątacze</h3>
+          <ul class="ranking-list">
+            <li *ngFor="let user of ranking; let i = index">
+              <div class="rank-info">
+                <span class="rank" [ngStyle]="{'color': i === 0 ? '#ffca28' : (i === 1 ? '#c0c0c0' : '#cd7f32')}">
+                  #{{ i + 1 }}
+                </span>
+                <span class="name">{{ user.name }}</span>
+              </div>
+              <span class="points">{{ user.points }} pkt</span>
+            </li>
+          </ul>
+          <p *ngIf="ranking.length === 0" style="text-align: center; font-size: 0.9rem; color: #888;">Nikt jeszcze nic nie posprzątał... 🙈</p>
+        </div>
+
       </div>
     </div>
   `,
   styles: [`
     .layout { display: flex; gap: 30px; flex-wrap: wrap; padding: 20px; max-width: 1000px; font-family: sans-serif; align-items: flex-start;}
     .main-content { flex: 2; min-width: 350px; }
-    .calendar-sidebar { flex: 1; min-width: 300px; }
+    .calendar-sidebar { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px; }
     
-    /* Style formularza i listy (bez zmian) */
     .add-box { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; align-items: center;}
     .input-main { flex: 1; min-width: 150px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
     select, input[type="date"] { padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
@@ -99,8 +109,9 @@ import { Chore } from './chores.model';
     .user-badge { background: #e2e3e5; color: #383d41; }
     .delete-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; }
 
-    /* NOWE: Style Kalendarza */
-    .calendar-card { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    /* Wspólny styl dla kart z prawej strony */
+    .sidebar-card { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    
     .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     .calendar-header button { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #007bff; }
     .calendar-header h3 { margin: 0; font-size: 1.1rem; }
@@ -112,19 +123,31 @@ import { Chore } from './chores.model';
     .dots { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin-top: 5px; max-width: 30px; }
     .dot { width: 6px; height: 6px; background-color: #dc3545; border-radius: 50%; }
     .dot.dot-done { background-color: #28a745; opacity: 0.5; }
+
+    /* Style Rankingu */
+    .ranking-card h3 { margin-top: 0; text-align: center; color: #333; }
+    .ranking-list { list-style: none; padding: 0; margin: 0; }
+    .ranking-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f1f1; }
+    .ranking-list li:last-child { border-bottom: none; }
+    .rank-info { display: flex; align-items: center; gap: 10px; }
+    .rank { font-weight: bold; font-size: 1.2rem; min-width: 25px;}
+    .name { font-weight: bold; color: #444; }
+    .points { font-weight: bold; color: #28a745; background: #e8f5e9; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; }
   `]
 })
 export class ChoresBoardComponent implements OnInit {
   displayItems: any[] = []; 
-  rawChores: Chore[] = []; // Trzymamy wszystkie zadania do kalendarza
+  rawChores: Chore[] = []; 
   members: any[] = []; 
+  
+  // Tablica przechowująca wyniki rankingu
+  ranking: { name: string, points: number }[] = [];
   
   newChoreTitle = '';
   newChoreAssignee: number | null = null;
   newChoreDate: string = '';
   isWeekly: boolean = false;
 
-  // --- Zmienne Kalendarza ---
   currentDate = new Date();
   calendarDays: any[] = [];
   monthNames = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
@@ -134,7 +157,7 @@ export class ChoresBoardComponent implements OnInit {
   ngOnInit() {
     this.loadChores();
     this.loadMembers();
-    this.generateCalendar(); // Inicjalizacja kalendarza
+    this.generateCalendar(); 
   }
 
   loadMembers() {
@@ -147,11 +170,31 @@ export class ChoresBoardComponent implements OnInit {
     this.choresService.getChores().subscribe(data => {
       this.rawChores = data;
       this.groupChores(data); 
-      this.mapTasksToCalendar(); // Po załadowaniu zadań nanies my je na kalendarz
+      this.mapTasksToCalendar();
+      this.calculateRanking(data); // <-- Odpalamy liczenie rankingu!
     });
   }
 
-  // --- LOGIKA KALENDARZA ---
+  // 🔥 LOGIKA RANKINGU
+  calculateRanking(data: Chore[]) {
+    const scores = new Map<string, number>();
+
+    // Przeszukujemy wszystkie zadania
+    data.forEach(chore => {
+      // Jeśli zadanie jest zrobione i ktoś był do niego przypisany
+      if (chore.isDone && chore.assignedTo) {
+        const name = chore.assignedTo.name;
+        // Dodajemy 1 punkt do konta tej osoby
+        scores.set(name, (scores.get(name) || 0) + 1);
+      }
+    });
+
+    // Zamieniamy mapę na tablicę i sortujemy od największej liczby punktów
+    this.ranking = Array.from(scores.entries())
+      .map(([name, points]) => ({ name, points }))
+      .sort((a, b) => b.points - a.points);
+  }
+
   changeMonth(offset: number) {
     this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + offset, 1);
     this.generateCalendar();
@@ -161,7 +204,6 @@ export class ChoresBoardComponent implements OnInit {
     const year = this.currentDate.getFullYear();
     const month = this.currentDate.getMonth();
     
-    // 0 to Niedziela, my chcemy żeby tydzień zaczynał się w Poniedziałek
     let firstDayIndex = new Date(year, month, 1).getDay();
     let startOffset = firstDayIndex - 1;
     if (startOffset === -1) startOffset = 6; 
@@ -171,41 +213,25 @@ export class ChoresBoardComponent implements OnInit {
 
     this.calendarDays = [];
 
-    // Puste kafelki na początku miesiąca
     for(let i = 0; i < startOffset; i++) {
       this.calendarDays.push({ empty: true });
     }
 
-    // Właściwe dni
     for(let i = 1; i <= daysInMonth; i++) {
-      // Tworzymy datę na godzinę 12:00, żeby uniknąć błędów stref czasowych
       const dateObj = new Date(year, month, i, 12, 0, 0);
       const dateStr = dateObj.toISOString().split('T')[0];
 
-      this.calendarDays.push({
-        empty: false,
-        dayNumber: i,
-        dateStr: dateStr,
-        isToday: dateStr === todayStr,
-        tasks: [],
-        tooltip: ''
-      });
+      this.calendarDays.push({ empty: false, dayNumber: i, dateStr: dateStr, isToday: dateStr === todayStr, tasks: [], tooltip: '' });
     }
-
     this.mapTasksToCalendar();
   }
 
   mapTasksToCalendar() {
     if (!this.calendarDays.length || !this.rawChores.length) return;
-
-    // Resetujemy zadania w dniach
     this.calendarDays.forEach(day => { if (!day.empty) { day.tasks = []; day.tooltip = ''; } });
-
-    // Wrzucamy zadania w odpowiednie okienka
     this.rawChores.forEach(chore => {
       if (!chore.date) return;
       const choreDateStr = new Date(chore.date).toISOString().split('T')[0];
-
       const targetDay = this.calendarDays.find(d => !d.empty && d.dateStr === choreDateStr);
       if (targetDay) {
         targetDay.tasks.push(chore);
@@ -213,7 +239,6 @@ export class ChoresBoardComponent implements OnInit {
       }
     });
   }
-  // -------------------------
 
   groupChores(data: Chore[]) {
     const groups: any[] = [];
@@ -222,11 +247,7 @@ export class ChoresBoardComponent implements OnInit {
     for (const chore of data) {
       if (processedIds.has(chore.id)) continue;
 
-      const similarChores = data.filter(c => 
-        c.title === chore.title && 
-        c.assignedToId === chore.assignedToId &&
-        !!c.date === !!chore.date 
-      );
+      const similarChores = data.filter(c => c.title === chore.title && c.assignedToId === chore.assignedToId && !!c.date === !!chore.date);
 
       if (similarChores.length > 1 && chore.date) {
         similarChores.forEach(c => processedIds.add(c.id)); 
@@ -234,26 +255,13 @@ export class ChoresBoardComponent implements OnInit {
         const doneCount = similarChores.filter(c => c.isDone).length;
 
         groups.push({
-          isGroup: true,
-          title: chore.title,
-          assignedTo: chore.assignedTo,
-          isDone: doneCount === similarChores.length, 
-          doneCount: doneCount,
-          totalCount: similarChores.length,
-          startDate: similarChores[0].date,
-          endDate: similarChores[similarChores.length - 1].date,
-          originalChores: similarChores 
+          isGroup: true, title: chore.title, assignedTo: chore.assignedTo,
+          isDone: doneCount === similarChores.length, doneCount: doneCount, totalCount: similarChores.length,
+          startDate: similarChores[0].date, endDate: similarChores[similarChores.length - 1].date, originalChores: similarChores 
         });
       } else {
         processedIds.add(chore.id);
-        groups.push({
-          isGroup: false,
-          title: chore.title,
-          assignedTo: chore.assignedTo,
-          isDone: chore.isDone,
-          date: chore.date,
-          originalChores: [chore]
-        });
+        groups.push({ isGroup: false, title: chore.title, assignedTo: chore.assignedTo, isDone: chore.isDone, date: chore.date, originalChores: [chore] });
       }
     }
     this.displayItems = groups;
@@ -261,18 +269,8 @@ export class ChoresBoardComponent implements OnInit {
 
   add() {
     if (!this.newChoreTitle.trim()) return;
-
-    this.choresService.addChore(
-      this.newChoreTitle, 
-      this.newChoreAssignee ? this.newChoreAssignee : undefined, 
-      this.newChoreDate ? this.newChoreDate : undefined,
-      this.isWeekly 
-    ).subscribe(() => {
-      this.newChoreTitle = '';
-      this.newChoreAssignee = null;
-      this.newChoreDate = '';
-      this.isWeekly = false; 
-      this.loadChores(); 
+    this.choresService.addChore(this.newChoreTitle, this.newChoreAssignee ? this.newChoreAssignee : undefined, this.newChoreDate ? this.newChoreDate : undefined, this.isWeekly).subscribe(() => {
+      this.newChoreTitle = ''; this.newChoreAssignee = null; this.newChoreDate = ''; this.isWeekly = false; this.loadChores(); 
     });
   }
 
