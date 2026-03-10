@@ -30,6 +30,9 @@
             <button (click)="add()" class="bg-blue-500 hover:bg-blue-400 text-white font-black py-2 px-4 rounded-xl border-b-[3px] border-blue-700 active:border-b-0 active:mt-[3px] transition-all text-sm">
               Zaplanuj ➕
             </button>
+            <button (click)="openScheduleModal()" class="bg-purple-500 hover:bg-purple-400 text-white font-black py-2 px-4 rounded-xl border-b-[3px] border-purple-700 active:border-b-0 active:mt-[3px] transition-all text-sm flex items-center gap-1">
+                Kreator 🪄
+              </button>
           </div>
         </div>
   
@@ -183,5 +186,91 @@
         </div>
   
       </div>
+    </div>
+  </div>
+  <div *ngIf="showScheduleModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
+  
+    <div class="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl border-2 border-purple-200 transform transition-all relative overflow-hidden">
+      <div class="absolute -top-10 -right-10 text-9xl opacity-10 cursor-default select-none">🪄</div>
+  
+      <div class="flex items-center gap-4 mb-6 relative z-10">
+        <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-2xl border-2 border-purple-200 shrink-0">🤖</div>
+        <div>
+          <h3 class="text-2xl font-black text-gray-800">Auto-Planowanie</h3>
+          <p class="text-sm font-bold text-gray-500">Wygeneruj listę na wiele tygodni</p>
+        </div>
+      </div>
+      
+      <div class="space-y-4 relative z-10 mb-8">
+        
+        <div>
+          <label class="block text-xs font-black text-purple-800 uppercase tracking-wider mb-1">Co trzeba zrobić?</label>
+          <input type="text" [(ngModel)]="schedTitle" placeholder="np. Umyć podłogę" class="w-full bg-gray-50 border-2 border-gray-300 rounded-xl px-4 py-3 font-bold text-gray-800 outline-none focus:border-purple-500">
+        </div>
+  
+        <div class="flex gap-4">
+          <div class="flex-1">
+            <label class="block text-xs font-black text-purple-800 uppercase tracking-wider mb-1">W każdy(ą)...</label>
+            <select [(ngModel)]="schedDay" class="w-full bg-gray-50 border-2 border-gray-300 rounded-xl px-4 py-3 font-bold text-gray-800 outline-none focus:border-purple-500 cursor-pointer">
+              <option *ngFor="let day of daysOfWeek" [ngValue]="day.id">{{ day.name }}</option>
+            </select>
+          </div>
+          
+          <div class="flex-1">
+            <label class="block text-xs font-black text-purple-800 uppercase tracking-wider mb-1">Przez ile czasu?</label>
+            <select [(ngModel)]="schedWeeks" class="w-full bg-gray-50 border-2 border-gray-300 rounded-xl px-4 py-3 font-bold text-gray-800 outline-none focus:border-purple-500 cursor-pointer">
+              <option [ngValue]="4">4 tygodnie (Miesiąc)</option>
+              <option [ngValue]="8">8 tygodni (2 Miesiące)</option>
+              <option [ngValue]="12">12 tygodni (3 Miesiące)</option>
+              <option [ngValue]="24">Pół roku! 🤯</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="bg-purple-50 p-3 rounded-2xl border-2 border-purple-100 mb-4">
+            <label class="block text-xs font-black text-purple-800 uppercase tracking-wider mb-2">Tryb powtarzania:</label>
+            <div class="flex gap-2">
+              <button (click)="schedType = 'SINGLE_DAY'" 
+                      [class]="schedType === 'SINGLE_DAY' ? 'bg-purple-500 text-white' : 'bg-white text-purple-500'"
+                      class="flex-1 py-2 px-3 rounded-xl font-bold text-xs transition-all border-2 border-purple-200">
+                Raz w tygodniu
+              </button>
+              <button (click)="schedType = 'FULL_WEEK'" 
+                      [class]="schedType === 'FULL_WEEK' ? 'bg-purple-500 text-white' : 'bg-white text-purple-500'"
+                      class="flex-1 py-2 px-3 rounded-xl font-bold text-xs transition-all border-2 border-purple-200">
+                Dyżur cały tydzień
+              </button>
+            </div>
+            <p class="text-[10px] font-bold text-purple-400 mt-2 text-center italic">
+              {{ schedType === 'SINGLE_DAY' ? 'Zadanie pojawi się tylko w wybrane dni.' : 'Osoba dostanie zadanie na KAŻDY dzień wybranego tygodnia.' }}
+            </p>
+          </div>
+
+        <div>
+          <label class="block text-xs font-black text-purple-800 uppercase tracking-wider mb-1">Kto to będzie robił?</label>
+          <select [(ngModel)]="schedMode" class="w-full bg-purple-50 border-2 border-purple-300 rounded-xl px-4 py-3 font-black text-purple-900 outline-none focus:border-purple-500 cursor-pointer">
+            <option value="ROTATE">🔄 Wszyscy rotacyjnie (po kolei!)</option>
+            <option [ngValue]="null">🤷‍♂️ Ktokolwiek (kto pierwszy ten lepszy)</option>
+            <hr>
+            <option *ngFor="let member of members" [value]="member.userId">Tylko: {{ member.user.name }}</option>
+          </select>
+          <p *ngIf="schedMode === 'ROTATE'" class="text-xs font-bold text-purple-600 mt-2 bg-purple-100 p-2 rounded-lg">
+            💡 Aplikacja podzieli {{ schedWeeks }} tygodni sprawiedliwie pomiędzy wszystkich lokatorów!
+          </p>
+        </div>
+  
+      </div>
+      
+      <div class="flex flex-col-reverse sm:flex-row gap-3 relative z-10">
+        <button (click)="closeScheduleModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black py-3 px-4 rounded-xl transition-colors border-2 border-gray-300">
+          Anuluj
+        </button>
+        <button (click)="generateSchedule()" 
+        [disabled]="isGenerating"
+        class="flex-1 bg-purple-500 hover:bg-purple-400 text-white font-black py-3 px-4 rounded-xl border-b-4 border-purple-700 active:border-b-0 active:mt-1 transition-all disabled:opacity-50">
+  {{ isGenerating ? 'Generowanie...' : 'Wygeneruj Magię ✨' }}
+</button>
+      </div>
+  
     </div>
   </div>

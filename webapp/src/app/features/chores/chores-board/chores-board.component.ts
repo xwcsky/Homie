@@ -16,6 +16,22 @@ import { ToastService } from 'src/app/toast.service';
   styleUrls: ['./chores-board.component.scss']
 })
 export class ChoresBoardComponent implements OnInit {
+  showScheduleModal = false;
+  schedTitle = '';
+  schedDay = 1; 
+  schedWeeks = 8; 
+  schedType: 'SINGLE_DAY' | 'FULL_WEEK' = 'SINGLE_DAY'; // Nowy przełącznik
+  schedMode: string | null = 'ROTATE';
+
+  daysOfWeek = [
+    { id: 1, name: 'Poniedziałki' },
+    { id: 2, name: 'Wtorki' },
+    { id: 3, name: 'Środy' },
+    { id: 4, name: 'Czwartki' },
+    { id: 5, name: 'Piątki' },
+    { id: 6, name: 'Soboty' },
+    { id: 0, name: 'Niedziele' }
+  ];
   displayItems: any[] = []; 
   rawChores: Chore[] = []; 
   members: any[] = []; 
@@ -334,4 +350,74 @@ getUserTheme(assignedTo: any) {
   // 5. Zwracamy kolor dla danej osoby!
   return colors[index % colors.length];
 }
+
+openScheduleModal() {
+  this.schedTitle = this.newChoreTitle || ''; // Kopiuje wpisany tytuł, jeśli jakiś jest
+  this.showScheduleModal = true;
+}
+
+closeScheduleModal() {
+  this.showScheduleModal = false;
+}
+
+isGenerating = false; // Dodaj tę zmienną na górze klasy
+
+  generateSchedule() {
+    if (!this.schedTitle.trim() || this.isGenerating) return;
+
+    this.isGenerating = true; // Blokujemy przycisk
+
+    // 1. Znajdujemy datę najbliższego wybranego dnia (np. Poniedziałku)
+    let startDate = new Date();
+    startDate.setHours(0, 0, 0, 0);
+    while (startDate.getDay() !== this.schedDay) {
+      startDate.setDate(startDate.getDate() + 1);
+    }
+
+    const requests = [];
+    let memberIndex = 0;
+
+    // 2. Pętla TYGODNI - wysyłamy tylko JEDNO zapytanie na tydzień
+    for (let w = 0; w < this.schedWeeks; w++) {
+      
+      let weekAssignee = null;
+      if (this.schedMode === 'ROTATE' && this.members.length > 0) {
+        weekAssignee = this.members[memberIndex % this.members.length].userId;
+        memberIndex++;
+      } else {
+        weekAssignee = this.schedMode !== 'ROTATE' ? this.schedMode : null;
+      }
+
+      const taskDate = new Date(startDate);
+      taskDate.setDate(taskDate.getDate() + (w * 7));
+      
+      const localDate = new Date(taskDate.getTime() - (taskDate.getTimezoneOffset() * 60000));
+      const dateString = localDate.toISOString().split('T')[0];
+
+      // WYSYŁAMY TYLKO RAZ NA TYDZIEŃ
+      requests.push(
+        this.choresService.addChore(
+          this.schedTitle, 
+          weekAssignee ? weekAssignee : undefined, 
+          dateString, 
+          this.schedType === 'FULL_WEEK' // Tu decydujemy czy backend ma rozbić to na 7 dni
+        )
+      );
+    }
+
+    // 3. Odpalamy paczkę
+    forkJoin(requests).subscribe({
+      next: () => {
+        this.toastService.show(`Harmonogram gotowy! 🪄`, 'success');
+        this.closeScheduleModal();
+        this.loadChores();
+        this.newChoreTitle = '';
+        this.isGenerating = false;
+      },
+      error: () => {
+        this.toastService.show('Błąd zapisu. 🚨', 'error');
+        this.isGenerating = false;
+      }
+    });
+  }
 }
