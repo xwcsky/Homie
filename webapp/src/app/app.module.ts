@@ -17,6 +17,8 @@ import { SettingsComponent } from './features/settings/settings.component';
 import { ToastComponent } from './shared/toast.component';
 import { ConfirmComponent } from './shared/confirm.component';
 import { PromptComponent } from './shared/prompt.component';
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -37,7 +39,13 @@ import { PromptComponent } from './shared/prompt.component';
     ChoresBoardComponent,
     OnboardingComponent,
     ToastComponent,
-    HttpClientModule
+    HttpClientModule,
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: environment.production,
+      // Register the ServiceWorker as soon as the application is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ],
   providers: [
     {
