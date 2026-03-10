@@ -1,1 +1,187 @@
-<p>chores-board works!</p>
+<div class="max-w-6xl mx-auto p-3 md:p-6 font-sans text-gray-800">
+  
+    <header class="mb-6">
+      <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
+        Grafik Sprzątania <span class="text-3xl">🧹</span>
+      </h1>
+    </header>
+  
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
+      
+      <div class="flex-1 w-full">
+        
+        <div class="bg-gray-50 border-2 border-gray-200 rounded-2xl p-4 mb-5 shadow-sm">
+          <div class="flex flex-wrap gap-3 items-center">
+            <input type="text" [(ngModel)]="newChoreTitle" placeholder="Co zrobić? (np. Podłoga)" 
+                   class="flex-1 min-w-[150px] bg-white border-2 border-gray-300 rounded-xl px-3 py-2 text-sm font-bold text-gray-700 outline-none focus:border-blue-500 transition-colors">
+            
+            <select [(ngModel)]="newChoreAssignee" class="bg-white border-2 border-gray-300 rounded-xl px-3 py-2 text-sm font-bold text-gray-700 outline-none focus:border-blue-500 cursor-pointer">
+              <option [ngValue]="null">Ktokolwiek 🤷‍♂️</option>
+              <option *ngFor="let member of members" [ngValue]="member.userId">{{ member.user.name }}</option>
+            </select>
+            
+            <input type="date" [(ngModel)]="newChoreDate" class="bg-white border-2 border-gray-300 rounded-xl px-3 py-2 text-sm font-bold text-gray-700 outline-none focus:border-blue-500 cursor-pointer">
+            
+            <label *ngIf="newChoreDate" class="flex items-center gap-1 cursor-pointer bg-blue-100 text-blue-800 font-bold px-3 py-2 rounded-xl border-2 border-blue-200 text-xs">
+              <input type="checkbox" [(ngModel)]="isWeekly" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500">
+              <span>🔄 Tydzień</span>
+            </label>
+            
+            <button (click)="add()" class="bg-blue-500 hover:bg-blue-400 text-white font-black py-2 px-4 rounded-xl border-b-[3px] border-blue-700 active:border-b-0 active:mt-[3px] transition-all text-sm">
+              Zaplanuj ➕
+            </button>
+          </div>
+        </div>
+  
+        <h3 *ngIf="activeItems.length > 0" class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 ml-2">🔥 Do zrobienia</h3>
+      <ul class="space-y-2 mb-6">
+        <li *ngFor="let item of activeItems" class="bg-white border-2 border-gray-200 rounded-xl p-2 flex items-center gap-3 transition-all hover:bg-gray-50" [class.opacity-60]="item.isDone">
+          
+          <label class="cursor-pointer flex items-center group shrink-0">
+            <input type="checkbox" class="hidden" [checked]="item.isDone" (change)="toggle(item)">
+            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors"
+                 [ngClass]="item.isDone ? 'bg-green-500 border-green-600' : 'bg-gray-100 border-gray-300 group-hover:border-green-400'">
+              <svg *ngIf="item.isDone" class="w-3 h-3 text-white font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+          </label>
+          
+          <div class="flex-1 flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+            <span class="text-sm font-black text-gray-800 truncate" [class.line-through]="item.isDone">{{ item.title }}</span>
+            
+            <div *ngIf="item.isGroup" class="flex items-center gap-2">
+              <span class="text-blue-600 font-bold bg-blue-100 px-1.5 py-0.5 rounded text-[10px] border border-blue-200 whitespace-nowrap">
+                {{ item.doneCount }}/{{ item.totalCount }}
+              </span>
+              <div class="w-10 bg-gray-200 rounded-full h-1.5 border border-gray-300 overflow-hidden hidden sm:block">
+                <div class="bg-green-500 h-1.5 rounded-full transition-all" [style.width.%]="(item.doneCount / item.totalCount) * 100"></div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5 text-[10px] font-bold sm:ml-auto">
+              <span *ngIf="item.isGroup" class="text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded flex items-center">
+                📅 {{ item.startDate | date:'dd.MM' }}-{{ item.endDate | date:'dd.MM' }}
+              </span>
+              <span *ngIf="!item.isGroup && item.date" class="text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded flex items-center" 
+                  [ngClass]="{'!bg-red-100 !text-red-700': isOverdue(item.date)}">
+                  📅 {{ item.date | date:'dd.MM' }}
+             </span>
+             <span *ngIf="item.assignedTo" 
+                [class]="getUserTheme(item.assignedTo).bg + ' ' + getUserTheme(item.assignedTo).text + ' px-1.5 py-0.5 rounded flex items-center truncate max-w-[90px] font-black'">
+                👤 {{ item.assignedTo.name }}
+            </span>
+            </div>
+          </div>
+
+          <button (click)="remove(item)" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </li>
+      </ul>
+
+      <h3 *ngIf="futureItems.length > 0" class="text-xs font-black text-indigo-400 uppercase tracking-widest mb-3 ml-2 mt-6">⏳ Zaplanowane</h3>
+      <ul class="space-y-2 opacity-60 hover:opacity-100 transition-opacity duration-300">
+        <li *ngFor="let item of futureItems" class="bg-white border-2 border-dashed border-gray-300 rounded-xl p-2 flex items-center gap-3 transition-all hover:bg-gray-50">
+          
+          <div class="cursor-pointer flex items-center group shrink-0" (click)="toggle(item)">
+            <div class="w-6 h-6 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+              <span class="text-[10px]">🔒</span>
+            </div>
+          </div>
+          
+          <div class="flex-1 flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+            <span class="text-sm font-bold text-gray-500 truncate">{{ item.title }}</span>
+            
+            <div *ngIf="item.isGroup" class="flex items-center gap-2">
+              <span class="text-gray-500 font-bold bg-gray-100 px-1.5 py-0.5 rounded text-[10px] border border-gray-200">
+                {{ item.doneCount }}/{{ item.totalCount }}
+              </span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5 text-[10px] font-bold sm:ml-auto opacity-75">
+              <span *ngIf="item.isGroup" class="text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex items-center border border-gray-200">
+                📅 {{ item.startDate | date:'dd.MM' }}-{{ item.endDate | date:'dd.MM' }}
+              </span>
+              <span *ngIf="!item.isGroup && item.date" class="text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded flex items-center border border-gray-200">
+                📅 {{ item.date | date:'dd.MM' }}
+              </span>
+              <span *ngIf="item.assignedTo" 
+                  [class]="getUserTheme(item.assignedTo).bg + ' ' + getUserTheme(item.assignedTo).text + ' px-1.5 py-0.5 rounded flex items-center truncate max-w-[90px] font-black border border-gray-200'">
+                 👤 {{ item.assignedTo.name }}
+              </span>
+            </div>
+          </div>
+
+          <button (click)="remove(item)" class="text-gray-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </li>
+      </ul>
+  
+        <div *ngIf="displayItems.length === 0" class="bg-green-50 border-2 border-green-200 rounded-2xl p-6 text-center mt-4">
+          <span class="text-4xl mb-2 block">✨</span>
+          <p class="text-green-800 font-black text-xl">Wszystko lśni!</p>
+          <p class="text-green-600 font-medium text-sm mt-1">Brak zaplanowanych obowiązków.</p>
+        </div>
+  
+      </div>
+  
+      <div class="w-full lg:w-72 flex flex-col gap-5 shrink-0">
+        
+        <div class="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4 shadow-sm">
+          <div class="flex justify-between items-center mb-3">
+            <button (click)="changeMonth(-1)" class="text-indigo-600 font-black text-lg hover:scale-125 transition-transform">◀</button>
+            <h3 class="font-black text-indigo-900 text-base uppercase tracking-wide">{{ monthNames[currentDate.getMonth()] }} {{ currentDate.getFullYear() }}</h3>
+            <button (click)="changeMonth(1)" class="text-indigo-600 font-black text-lg hover:scale-125 transition-transform">▶</button>
+          </div>
+          
+          <div class="grid grid-cols-7 gap-1 text-center mb-1">
+            <div class="text-indigo-400 font-bold text-[10px]">Pn</div><div class="text-indigo-400 font-bold text-[10px]">Wt</div><div class="text-indigo-400 font-bold text-[10px]">Śr</div>
+            <div class="text-indigo-400 font-bold text-[10px]">Cz</div><div class="text-indigo-400 font-bold text-[10px]">Pt</div><div class="text-indigo-400 font-bold text-[10px]">Sb</div><div class="text-indigo-400 font-bold text-[10px]">Nd</div>
+          </div>
+          
+          <div class="grid grid-cols-7 gap-1 text-center">
+            <div *ngFor="let day of calendarDays" 
+                 class="flex flex-col items-center justify-start py-1 rounded-lg border-2 transition-all min-h-[40px]"
+                 [ngClass]="{
+                   'border-transparent': day.empty || !day.isToday,
+                   'bg-white border-indigo-300 shadow-sm': !day.empty,
+                   'bg-indigo-500 border-indigo-700 text-white font-black scale-105 z-10': day.isToday
+                 }"
+                 [title]="day.tooltip">
+              <span *ngIf="!day.empty" class="text-xs" [class.font-bold]="day.tasks.length > 0">{{ day.dayNumber }}</span>
+              <div class="flex flex-wrap gap-[2px] justify-center mt-0.5 px-0.5">
+                <div *ngFor="let t of day.tasks" 
+                     [class]="'w-1.5 h-1.5 rounded-full ' + (t.isDone ? 'bg-green-400 opacity-50' : getUserTheme(t.assignedTo).dot)">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 shadow-sm">
+          <h3 class="font-black text-amber-900 text-lg mb-3 text-center">🏆 Top Sprzątacze</h3>
+          
+          <ul class="space-y-2">
+            <li *ngFor="let user of ranking; let i = index" class="bg-white border-2 border-amber-100 rounded-xl p-2 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center font-black text-white text-xs"
+                     [ngClass]="i === 0 ? 'bg-yellow-400 border-b-2 border-yellow-600' : (i === 1 ? 'bg-gray-300 border-b-2 border-gray-500' : (i === 2 ? 'bg-orange-400 border-b-2 border-orange-600' : 'bg-blue-200 text-blue-800 border-none'))">
+                  {{ i + 1 }}
+                </div>
+                <span class="font-bold text-gray-800 text-sm">{{ user.name }}</span>
+              </div>
+              <span class="bg-amber-100 text-amber-800 font-black px-2 py-0.5 rounded-lg border-2 border-amber-200 text-xs">
+                {{ user.points }} pkt
+              </span>
+            </li>
+          </ul>
+          
+          <div *ngIf="ranking.length === 0" class="text-center py-3">
+            <span class="text-3xl">🙈</span>
+            <p class="text-amber-700 font-bold mt-1 text-xs">Nikt jeszcze nic nie posprzątał...</p>
+          </div>
+        </div>
+  
+      </div>
+    </div>
+  </div>

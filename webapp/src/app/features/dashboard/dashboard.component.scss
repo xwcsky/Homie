@@ -1,0 +1,7 @@
+.dashboard-grid { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;}
+.card { flex: 1; min-width: 300px; border: 1px solid #ccc; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.today-card { background-color: #fff9e6; border-color: #ffeeba; }
+.today-list { list-style: none; padding: 0; }
+.today-list li { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f5c6cb; }
+.today-list li.done { opacity: 0.5; text-decoration: line-through; }
+.user-badge { font-size: 0.8rem; background: white; padding: 2px 6px; border-radius: 4px; border: 1px solid #ccc; }

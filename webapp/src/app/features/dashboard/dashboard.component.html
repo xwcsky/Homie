@@ -1,1 +1,92 @@
-<p>dashboard works!</p>
+<div class="max-w-5xl mx-auto p-3 md:p-6 font-sans text-gray-800">
+  
+    <header class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+        Witaj w domu! <span class="text-3xl inline-block hover:animate-bounce cursor-default">🏠</span>
+      </h1>
+    </header>
+  
+    <div *ngIf="flatData" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      
+      <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 shadow-sm">
+        <h2 class="text-xl font-black text-blue-900 mb-2">{{ flatData.name }}</h2>
+        
+        <div class="bg-white rounded-xl p-3 border-2 border-blue-100 my-3 flex justify-between items-center">
+          <span class="text-blue-500 font-bold text-xs uppercase">Kod</span>
+          <span class="text-xl font-black text-blue-700 tracking-widest">{{ flatData.code }}</span>
+        </div>
+  
+        <h3 class="font-bold text-blue-800 text-sm mb-2 flex items-center gap-1"><span>👥</span> Ekipa:</h3>
+        <ul class="space-y-2">
+          <li *ngFor="let member of flatData.memberships" class="flex items-center bg-white px-3 py-2 rounded-xl border-2 border-blue-100 font-bold text-gray-700 text-sm">
+            <div class="w-8 h-8 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center font-black mr-3">
+              {{ member.user.name.charAt(0) | uppercase }}
+            </div>
+            {{ member.user.name }} 
+            <span *ngIf="member.role === 'ADMIN'" class="ml-auto text-lg" title="Admin">👑</span>
+          </li>
+        </ul>
+      </div>
+  
+      <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 shadow-sm flex flex-col">
+        <h2 class="text-xl font-black text-amber-900 mb-3 flex items-center gap-1"><span>🔥</span> Zadania na dziś</h2>
+  
+        <ul class="space-y-2 flex-1">
+          <li *ngFor="let chore of todayChores" class="bg-white border-2 border-amber-100 rounded-xl p-3 flex items-center justify-between transition-all" [class.opacity-50]="chore.isDone">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center" [ngClass]="chore.isDone ? 'bg-green-500 border-green-600' : 'bg-gray-100 border-gray-300'">
+                <svg *ngIf="chore.isDone" class="w-3 h-3 text-white font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+              </div>
+              <span class="font-bold text-gray-800 text-sm" [class.line-through]="chore.isDone">{{ chore.title }}</span>
+            </div>
+            <span *ngIf="chore.assignedTo" class="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wide">{{ chore.assignedTo.name }}</span>
+          </li>
+        </ul>
+  
+        <div *ngIf="todayChores.length === 0" class="flex-1 flex flex-col items-center justify-center text-center py-4">
+          <span class="text-4xl mb-2">🛋️</span>
+          <p class="text-amber-800 font-black text-lg mb-1">Brak zadań na dziś!</p>
+        </div>
+  
+        <button routerLink="/chores" class="mt-4 w-full bg-amber-400 hover:bg-amber-300 text-amber-900 font-black py-3 px-4 rounded-xl border-b-[3px] border-amber-500 active:border-b-0 active:mt-[19px] transition-all flex justify-center items-center gap-2 text-sm">
+          Do grafiku <span>▶️</span>
+        </button>
+      </div>
+    </div>
+  
+    <div class="bg-gray-50 border-2 border-gray-200 rounded-3xl p-5 md:p-6 shadow-sm relative overflow-hidden">
+      
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
+        <h2 class="text-xl md:text-2xl font-black text-gray-800 flex items-center gap-2">
+          <span>❄️</span> Lodówka 
+          <span class="text-xs font-bold bg-gray-200 text-gray-600 px-2 py-1 rounded-full ml-1">Ważne info</span>
+        </h2>
+        
+        <button (click)="saveBoard()" [disabled]="isSaving" class="w-full sm:w-auto bg-green-500 hover:bg-green-400 text-white font-black py-2 px-5 rounded-xl border-b-[3px] border-green-700 active:border-b-0 active:mt-[3px] transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ isSaving ? 'Zapisywanie...' : 'Zapisz 💾' }}
+        </button>
+      </div>
+  
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-2">
+        
+        <div class="bg-yellow-200 border-2 border-yellow-300 rounded-bl-2xl rounded-br-sm rounded-tr-2xl rounded-tl-sm p-5 shadow-md relative -rotate-2 hover:rotate-0 hover:scale-105 transition-all duration-300 flex flex-col h-48">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl drop-shadow-md">📍</div>
+          <h3 class="font-black text-yellow-900 text-base border-b-2 border-yellow-300 pb-1 mb-2">📶 Hasło Wi-Fi</h3>
+          <textarea [(ngModel)]="boardData.wifiPassword" placeholder="Wpisz nazwę sieci i hasło..." class="flex-1 w-full bg-transparent border-none resize-none outline-none font-bold text-yellow-800 placeholder-yellow-600/50 text-base leading-snug"></textarea>
+        </div>
+  
+        <div class="bg-sky-200 border-2 border-sky-300 rounded-bl-sm rounded-br-2xl rounded-tr-sm rounded-tl-2xl p-5 shadow-md relative rotate-2 hover:rotate-0 hover:scale-105 transition-all duration-300 flex flex-col h-48">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl drop-shadow-md">📍</div>
+          <h3 class="font-black text-sky-900 text-base border-b-2 border-sky-300 pb-1 mb-2">💸 Konto za czynsz</h3>
+          <textarea [(ngModel)]="boardData.bankAccount" placeholder="Numer konta właściciela..." class="flex-1 w-full bg-transparent border-none resize-none outline-none font-bold text-sky-800 placeholder-sky-600/50 text-base leading-snug"></textarea>
+        </div>
+  
+        <div class="bg-pink-200 border-2 border-pink-300 rounded-bl-2xl rounded-br-2xl rounded-tr-sm rounded-tl-sm p-5 shadow-md relative -rotate-1 hover:rotate-0 hover:scale-105 transition-all duration-300 flex flex-col h-48">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl drop-shadow-md">📍</div>
+          <h3 class="font-black text-pink-900 text-base border-b-2 border-pink-300 pb-1 mb-2">📜 Zasady domu</h3>
+          <textarea [(ngModel)]="boardData.boardNotes" placeholder="np. Wyrzucamy śmieci jak jest pełno. Cisza nocna..." class="flex-1 w-full bg-transparent border-none resize-none outline-none font-bold text-pink-800 placeholder-pink-600/50 text-base leading-snug"></textarea>
+        </div>
+  
+      </div>
+    </div>
+  </div>

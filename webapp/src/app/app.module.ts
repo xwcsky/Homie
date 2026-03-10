@@ -13,8 +13,10 @@ import { NavbarComponent } from './shared/navbar/navbar.component';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http'
 import { AuthInterceptor } from './auth/auth.interceptor';
 import { OnboardingComponent } from './features/auth/onboarding/onboarding.component';
-import { BoardComponent } from './features/board/board.component';
 import { SettingsComponent } from './features/settings/settings.component';
+import { ToastComponent } from './shared/toast.component';
+import { ConfirmComponent } from './shared/confirm.component';
+import { PromptComponent } from './shared/prompt.component';
 
 @NgModule({
   declarations: [
@@ -28,11 +30,13 @@ import { SettingsComponent } from './features/settings/settings.component';
     LoginComponent,
     DashboardComponent,
     SettingsComponent,
+    PromptComponent,
     ExpenseListComponent,
+    ConfirmComponent,
     ShoppingListComponent,
     ChoresBoardComponent,
     OnboardingComponent,
-    BoardComponent,
+    ToastComponent,
     HttpClientModule
   ],
   providers: [

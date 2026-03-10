@@ -1,144 +1,26 @@
-import { Component, OnInit } from '@angular/core';
+import { forkJoin } from 'rxjs';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChoresService } from '../../../chores/chores.service';
 import { FlatsService } from '../../../flats/flats.service';
 import { Chore } from './chores.model';
+import { ConfirmService } from 'src/app/confirm.service';
+import { ToastService } from 'src/app/toast.service';
 
 @Component({
   selector: 'app-chores-board',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  template: `
-    <div class="layout">
-      <div class="main-content">
-        <h2>Grafik Sprzątania 🧹</h2>
-
-        <div class="add-box">
-          <input type="text" [(ngModel)]="newChoreTitle" placeholder="Co trzeba zrobić?" class="input-main">
-          <select [(ngModel)]="newChoreAssignee">
-            <option [ngValue]="null">Ktokolwiek</option>
-            <option *ngFor="let member of members" [ngValue]="member.userId">{{ member.user.name }}</option>
-          </select>
-          <input type="date" [(ngModel)]="newChoreDate">
-          <label *ngIf="newChoreDate" class="weekly-checkbox">
-            <input type="checkbox" [(ngModel)]="isWeekly"> 🔄 Cały tydzień
-          </label>
-          <button (click)="add()" class="btn-add">Zaplanuj</button>
-        </div>
-
-        <ul class="chore-list">
-          <li *ngFor="let item of displayItems" [class.done]="item.isDone">
-            <input type="checkbox" [checked]="item.isDone" (change)="toggle(item)">
-            <div class="chore-info">
-              <span class="title">
-                {{ item.title }} 
-                <span *ngIf="item.isGroup" class="progress-counter">({{ item.doneCount }}/{{ item.totalCount }})</span>
-              </span>
-              <div class="meta">
-                <span *ngIf="item.isGroup" class="badge date-badge">📅 {{ item.startDate | date:'dd.MM' }} - {{ item.endDate | date:'dd.MM' }}</span>
-                <span *ngIf="!item.isGroup && item.date" class="badge date-badge">📅 {{ item.date | date:'dd.MM.yyyy' }}</span>
-                <span *ngIf="item.assignedTo" class="badge user-badge">👤 {{ item.assignedTo.name }}</span>
-              </div>
-            </div>
-            <button class="delete-btn" (click)="remove(item)">🗑️</button>
-          </li>
-        </ul>
-        <p *ngIf="displayItems.length === 0">Grafik czysty! Można odpoczywać. 🎉</p>
-      </div>
-
-      <div class="calendar-sidebar">
-        
-        <div class="sidebar-card">
-          <div class="calendar-header">
-            <button (click)="changeMonth(-1)">◀</button>
-            <h3>{{ monthNames[currentDate.getMonth()] }} {{ currentDate.getFullYear() }}</h3>
-            <button (click)="changeMonth(1)">▶</button>
-          </div>
-          
-          <div class="calendar-grid">
-            <div class="day-name">Pn</div><div class="day-name">Wt</div><div class="day-name">Śr</div>
-            <div class="day-name">Cz</div><div class="day-name">Pt</div><div class="day-name">Sb</div><div class="day-name">Nd</div>
-
-            <div *ngFor="let day of calendarDays" class="calendar-day" [class.empty]="day.empty" [class.today]="day.isToday" [title]="day.tooltip">
-              <span *ngIf="!day.empty">{{ day.dayNumber }}</span>
-              <div class="dots" *ngIf="!day.empty && day.tasks.length > 0">
-                <div *ngFor="let t of day.tasks" class="dot" [class.dot-done]="t.isDone"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="sidebar-card ranking-card">
-          <h3>🏆 Top Sprzątacze</h3>
-          <ul class="ranking-list">
-            <li *ngFor="let user of ranking; let i = index">
-              <div class="rank-info">
-                <span class="rank" [ngStyle]="{'color': i === 0 ? '#ffca28' : (i === 1 ? '#c0c0c0' : '#cd7f32')}">
-                  #{{ i + 1 }}
-                </span>
-                <span class="name">{{ user.name }}</span>
-              </div>
-              <span class="points">{{ user.points }} pkt</span>
-            </li>
-          </ul>
-          <p *ngIf="ranking.length === 0" style="text-align: center; font-size: 0.9rem; color: #888;">Nikt jeszcze nic nie posprzątał... 🙈</p>
-        </div>
-
-      </div>
-    </div>
-  `,
-  styles: [`
-    .layout { display: flex; gap: 30px; flex-wrap: wrap; padding: 20px; max-width: 1000px; font-family: sans-serif; align-items: flex-start;}
-    .main-content { flex: 2; min-width: 350px; }
-    .calendar-sidebar { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px; }
-    
-    .add-box { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; align-items: center;}
-    .input-main { flex: 1; min-width: 150px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
-    select, input[type="date"] { padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
-    .weekly-checkbox { font-size: 0.9rem; cursor: pointer; }
-    .btn-add { background: #007bff; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-    .chore-list { list-style: none; padding: 0; margin: 0; }
-    .chore-list li { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #eee; }
-    .chore-list li.done .title { text-decoration: line-through; color: #888; }
-    .chore-info { display: flex; flex-direction: column; flex: 1; gap: 4px; }
-    .progress-counter { font-size: 0.8rem; color: #007bff; font-weight: bold; margin-left: 5px;}
-    .meta { display: flex; gap: 8px; font-size: 0.8rem; }
-    .badge { padding: 2px 6px; border-radius: 4px; }
-    .date-badge { background: #fff3cd; color: #856404; font-weight: bold;}
-    .user-badge { background: #e2e3e5; color: #383d41; }
-    .delete-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; }
-
-    /* Wspólny styl dla kart z prawej strony */
-    .sidebar-card { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    
-    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .calendar-header button { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #007bff; }
-    .calendar-header h3 { margin: 0; font-size: 1.1rem; }
-    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-    .day-name { font-weight: bold; font-size: 0.8rem; color: #666; margin-bottom: 5px; }
-    .calendar-day { background: #f8f9fa; border-radius: 4px; padding: 8px 4px; min-height: 45px; display: flex; flex-direction: column; align-items: center; font-size: 0.9rem; }
-    .calendar-day.empty { background: transparent; border: none; }
-    .calendar-day.today { background: #e0f0ff; border: 1px solid #007bff; font-weight: bold; color: #007bff; }
-    .dots { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; margin-top: 5px; max-width: 30px; }
-    .dot { width: 6px; height: 6px; background-color: #dc3545; border-radius: 50%; }
-    .dot.dot-done { background-color: #28a745; opacity: 0.5; }
-
-    /* Style Rankingu */
-    .ranking-card h3 { margin-top: 0; text-align: center; color: #333; }
-    .ranking-list { list-style: none; padding: 0; margin: 0; }
-    .ranking-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f1f1; }
-    .ranking-list li:last-child { border-bottom: none; }
-    .rank-info { display: flex; align-items: center; gap: 10px; }
-    .rank { font-weight: bold; font-size: 1.2rem; min-width: 25px;}
-    .name { font-weight: bold; color: #444; }
-    .points { font-weight: bold; color: #28a745; background: #e8f5e9; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; }
-  `]
+  templateUrl: './chores-board.component.html',
+  styleUrls: ['./chores-board.component.scss']
 })
 export class ChoresBoardComponent implements OnInit {
   displayItems: any[] = []; 
   rawChores: Chore[] = []; 
   members: any[] = []; 
+  confirmService = inject(ConfirmService);
+  toastService = inject(ToastService);
   
   // Tablica przechowująca wyniki rankingu
   ranking: { name: string, points: number }[] = [];
@@ -275,25 +157,181 @@ export class ChoresBoardComponent implements OnInit {
   }
 
   toggle(item: any) {
-    const newState = !item.isDone;
-    item.isDone = newState;
-    let completed = 0;
-    item.originalChores.forEach((c: any) => {
-      this.choresService.toggleChore(c.id, newState).subscribe(() => {
-        completed++;
-        if (completed === item.originalChores.length) this.loadChores();
+    const dzisiaj = new Date();
+    dzisiaj.setHours(0, 0, 0, 0);
+
+    if (!item.isGroup) {
+      // 1. ZADANIE POJEDYNCZE (prawdziwe id siedzi w originalChores[0])
+      const realChore = item.originalChores[0];
+      const choreId = realChore.id || realChore._id || realChore.taskId; // Zabezpieczenie nazwy ID
+      
+      // Blokada przed oszukiwaniem (tylko przy próbie ZAZNACZENIA)
+      if (!item.isDone && item.date) {
+        const taskDate = new Date(item.date);
+        taskDate.setHours(0, 0, 0, 0);
+        
+        if (taskDate > dzisiaj) {
+          this.toastService.show('Nie oszukuj! To zadanie jest na przyszłość. 🛑', 'error');
+          return;
+        }
+      }
+
+      const newState = !item.isDone;
+      item.isDone = newState; // Zmieniamy w widoku
+      
+      this.choresService.toggleChore(choreId, newState).subscribe({
+        next: () => this.loadChores(),
+        error: () => {
+          item.isDone = !newState; // W razie błędu serwera cofamy
+          this.toastService.show('Błąd zapisu. 🚨', 'error');
+        }
       });
+
+    } else {
+      // 2. GRUPA (CAŁY TYDZIEŃ)
+      if (!item.isDone) {
+        // Chcemy ODFAJKOWAĆ CZĘŚĆ - szukamy pierwszego NIEZROBIONEGO
+        const choreToComplete = item.originalChores.find((c: any) => !c.isDone);
+        
+        if (choreToComplete) {
+          const taskDate = new Date(choreToComplete.date);
+          taskDate.setHours(0, 0, 0, 0);
+
+          if (taskDate > dzisiaj) {
+            this.toastService.show('Dzisiejsza część zrobiona! Reszta czeka na swoje dni. 🛑', 'info');
+            return;
+          }
+
+          const choreId = choreToComplete.id || choreToComplete._id;
+          
+          this.choresService.toggleChore(choreId, true).subscribe({
+            next: () => {
+              this.toastService.show('Kawał dobrej roboty! +1 pkt 🏆', 'success');
+              this.loadChores(); 
+            },
+            error: () => this.toastService.show('Błąd zapisu. 🚨', 'error')
+          });
+        }
+      } else {
+        // Chcemy COFNĄĆ ODFAJKOWANIE (przypadkowe kliknięcie)
+        const choreToUndo = [...item.originalChores].reverse().find((c: any) => c.isDone);
+        
+        if (choreToUndo) {
+          const choreId = choreToUndo.id || choreToUndo._id;
+
+          this.choresService.toggleChore(choreId, false).subscribe({
+            next: () => this.loadChores(), // Po cichu cofamy błąd użytkownika
+            error: () => this.toastService.show('Błąd zapisu. 🚨', 'error')
+          });
+        }
+      }
+    }
+  }
+
+  get activeItems() {
+    const dzisiaj = new Date();
+    dzisiaj.setHours(0, 0, 0, 0);
+
+    return this.displayItems.filter(item => {
+      let taskDate = new Date();
+      if (item.isGroup) {
+        const nextChore = item.originalChores.find((c: any) => !c.isDone);
+        if (!nextChore) return true; // Jak zrobione w 100%, zostawiamy w aktywnych, żeby móc cofnąć
+        taskDate = new Date(nextChore.date);
+      } else if (item.date) {
+        taskDate = new Date(item.date);
+      }
+      taskDate.setHours(0, 0, 0, 0);
+      return taskDate <= dzisiaj; // Zwraca wszystko z dzisiaj i przeszłości
     });
   }
 
-  remove(item: any) {
-    if(!confirm('Na pewno usunąć?')) return;
-    let completed = 0;
-    item.originalChores.forEach((c: any) => {
-      this.choresService.deleteChore(c.id).subscribe(() => {
-        completed++;
-        if (completed === item.originalChores.length) this.loadChores();
-      });
+  // Automatycznie filtrują zadania z Przyszłości
+  get futureItems() {
+    const dzisiaj = new Date();
+    dzisiaj.setHours(0, 0, 0, 0);
+
+    return this.displayItems.filter(item => {
+      let taskDate = new Date();
+      if (item.isGroup) {
+        const nextChore = item.originalChores.find((c: any) => !c.isDone);
+        if (!nextChore) return false;
+        taskDate = new Date(nextChore.date);
+      } else if (item.date) {
+        taskDate = new Date(item.date);
+      }
+      taskDate.setHours(0, 0, 0, 0);
+      return taskDate > dzisiaj; // Tylko zadania jutrzejsze i dalsze
     });
   }
+
+  // Funkcja sprawdzająca czy zadanie jest zaległe
+  isOverdue(dateString: string | Date | null): boolean {
+    if (!dateString) return false;
+    
+    const taskDate = new Date(dateString);
+    taskDate.setHours(0, 0, 0, 0);
+    
+    const dzisiaj = new Date();
+    dzisiaj.setHours(0, 0, 0, 0);
+    
+    return taskDate < dzisiaj;
+  }
+
+  async remove(item: any) {
+    const isConfirmed = await this.confirmService.ask(
+      'Usuwanie obowiązku',
+      `Czy na pewno chcesz usunąć zadanie "${item.title}"?`,
+      'Tak, usuń 🗑️',
+      'Anuluj'
+    );
+
+    if (!isConfirmed) return;
+
+    const deleteRequests = item.originalChores.map((c: any) => 
+      this.choresService.deleteChore(c.id)
+    );
+
+    if (deleteRequests.length > 0) {
+      forkJoin(deleteRequests).subscribe({
+        next: () => {
+          this.toastService.show('Obowiązek usunięty! 🧹', 'success');
+          this.loadChores();
+        },
+        error: () => {
+          this.toastService.show('Błąd podczas usuwania. Spróbuj ponownie. 🚨', 'error');
+        }
+      });
+    }
+  }
+
+// Kuloodporne przypisywanie kolorów
+getUserTheme(assignedTo: any) {
+  // 1. Domyślny, szary kolor (gdy zadanie jest dla "Ktokolwiek")
+  if (!assignedTo) return { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400' };
+  
+  // 2. Nasza paleta barw
+  const colors = [
+    { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-200', dot: 'bg-purple-500' },
+    { bg: 'bg-pink-100', text: 'text-pink-800', border: 'border-pink-200', dot: 'bg-pink-500' },
+    { bg: 'bg-sky-100', text: 'text-sky-800', border: 'border-sky-200', dot: 'bg-sky-500' },
+    { bg: 'bg-teal-100', text: 'text-teal-800', border: 'border-teal-200', dot: 'bg-teal-500' },
+    { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-200', dot: 'bg-orange-500' }
+  ];
+
+  // 3. Szukamy, którym z kolei domownikiem jest ta osoba
+  let index = this.members.findIndex((m: any) => 
+    m.user?.name === assignedTo.name || 
+    m.userId === assignedTo.id ||
+    m.user?.id === assignedTo.id
+  );
+
+  // 4. Jeśli cudem nie znalazło, dajemy losowy kolor na podstawie długości imienia
+  if (index === -1) {
+    index = assignedTo.name ? assignedTo.name.length : 0;
+  }
+
+  // 5. Zwracamy kolor dla danej osoby!
+  return colors[index % colors.length];
+}
 }

@@ -1,1 +1,113 @@
-<p>expense-list works!</p>
+<div class="max-w-6xl mx-auto p-4 md:p-8 font-sans text-gray-800">
+  
+    <header class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+        Wspólne Finanse <span class="text-4xl">💸</span>
+      </h1>
+    </header>
+  
+    <div class="flex flex-col lg:flex-row gap-8 items-start">
+      
+      <div class="flex-1 w-full">
+        
+        <div class="bg-emerald-50 border-2 border-emerald-200 rounded-3xl p-5 mb-8 shadow-sm">
+          <h2 class="font-black text-emerald-900 text-xl mb-4">Dodaj nowy paragon 🧾</h2>
+          <div class="flex flex-col sm:flex-row gap-4 items-center">
+            
+            <input 
+              type="text" 
+              [(ngModel)]="newBillName" 
+              placeholder="Co kupiono? (np. Papier toaletowy)"
+              class="flex-1 w-full sm:w-auto bg-white border-2 border-gray-300 rounded-2xl px-5 py-4 font-bold text-gray-700 outline-none focus:border-emerald-500 text-lg transition-colors"
+            >
+            
+            <div class="relative w-full sm:w-32">
+              <input 
+                type="number" 
+                [(ngModel)]="newBillAmount" 
+                placeholder="0.00"
+                class="w-full bg-white border-2 border-gray-300 rounded-2xl px-5 py-4 font-black text-gray-800 outline-none focus:border-emerald-500 text-lg transition-colors pr-10"
+              >
+              <span class="absolute right-4 top-1/2 -translate-y-1/2 font-black text-gray-400 text-lg">zł</span>
+            </div>
+  
+            <button 
+              (click)="addBill()" 
+              class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-white font-black py-4 px-8 rounded-2xl border-b-4 border-emerald-700 active:border-b-0 active:mt-1 transition-all text-lg"
+            >
+              Dodaj ➕
+            </button>
+          </div>
+        </div>
+  
+        <h3 class="font-black text-gray-800 text-xl mb-4">Historia zakupów</h3>
+        <ul class="space-y-4">
+          <li *ngFor="let bill of bills" class="bg-white border-2 border-gray-200 rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-emerald-100 border-2 border-emerald-200 flex items-center justify-center text-xl">
+                🛍️
+              </div>
+              
+              <div class="flex flex-col">
+                <span class="text-xl font-black text-gray-800">{{ bill.name }}</span>
+                <span class="text-sm font-bold text-gray-500 mt-1 flex items-center gap-1">
+                  👤 Kupił(a): <span class="text-emerald-700">{{ bill.payer.name }}</span>
+                  <span class="mx-1">•</span>
+                  📅 {{ bill.createdAt | date:'dd.MM, HH:mm' }}
+                </span>
+              </div>
+            </div>
+  
+            <div class="bg-gray-100 border-2 border-gray-200 rounded-2xl px-4 py-2 text-center">
+              <span class="block text-xs font-bold text-gray-500 uppercase">Kwota</span>
+              <span class="font-black text-xl text-gray-800">{{ bill.amount | number:'1.2-2' }} zł</span>
+            </div>
+            
+          </li>
+        </ul>
+        
+        <div *ngIf="bills.length === 0" class="bg-gray-50 border-2 border-gray-200 rounded-3xl p-10 text-center mt-6">
+          <span class="text-6xl mb-4 block">🦗</span>
+          <p class="text-gray-600 font-black text-2xl">Brak wydatków!</p>
+          <p class="text-gray-500 font-medium text-lg">Cisza, spokój, pieniądze na koncie.</p>
+        </div>
+  
+      </div>
+  
+      <div class="w-full lg:w-80 flex flex-col gap-6 shrink-0">
+        
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-3xl p-5 shadow-sm">
+          <h3 class="font-black text-blue-900 text-xl mb-4 text-center">📊 Kto komu wisi?</h3>
+          
+          <ul class="space-y-3">
+            <li *ngFor="let item of summary" class="bg-white border-2 border-blue-100 rounded-2xl p-4 flex flex-col gap-2">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center font-black text-sm border-2 border-blue-300">
+                  {{ item.name.charAt(0) | uppercase }}
+                </div>
+                <span class="font-bold text-gray-800 text-lg">{{ item.name }}</span>
+              </div>
+              
+              <div class="font-black text-xl text-right p-2 rounded-xl border-2"
+                   [ngClass]="item.balance > 0 ? 'bg-green-100 text-green-700 border-green-200' : (item.balance < 0 ? 'bg-red-100 text-red-700 border-red-200' : 'bg-gray-100 text-gray-600 border-gray-200')">
+                 {{ item.balance > 0 ? '+' : '' }}{{ item.balance | number:'1.2-2' }} zł
+              </div>
+            </li>
+          </ul>
+          
+          <div *ngIf="summary.length === 0" class="text-center py-4">
+            <p class="text-blue-700 font-bold mt-2 text-sm">Wszyscy są kwita! 🤝</p>
+          </div>
+  
+          <button 
+            (click)="clearDebts()" 
+            class="mt-6 w-full bg-red-500 hover:bg-red-400 text-white font-black py-4 px-6 rounded-2xl border-b-4 border-red-700 active:border-b-0 active:mt-7 transition-all flex justify-center items-center gap-2"
+          >
+            <span>🚨</span> Wyzeruj długi
+          </button>
+        </div>
+  
+      </div>
+    </div>
+  </div>

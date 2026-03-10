@@ -1,89 +1,27 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FinancesService } from 'src/app/finances/finances.service';
-import { Bill, Summary } from './bill-model';
+import { ConfirmService } from 'src/app/confirm.service';
+import { ToastService } from 'src/app/toast.service';
 
 @Component({
-  selector: 'app-finances',
+  selector: 'app-expense-list',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  template: `
-    <div class="container">
-      <h1>Finanse Domowe 💰</h1>
-
-      <div class="summary-card" *ngIf="summary">
-        <h3>📊 Bilans</h3>
-        <p>W sumie wydano: <strong>{{ summary.totalSpent }} zł</strong></p>
-        <p>Na głowę wychodzi: <strong>{{ summary.perPerson }} zł</strong></p>
-        
-        <div class="balances">
-          <div *ngFor="let bal of summary.balances" class="balance-row" 
-               [class.plus]="bal.balance >= 0" 
-               [class.minus]="bal.balance < 0">
-            <span>👤 {{ bal.name }}</span>
-            <span class="amount">
-              {{ bal.balance > 0 ? 'Odzyska' : 'Musi oddać' }}: 
-              <strong>{{ bal.balance | number:'1.2-2' }} zł</strong>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <hr>
-
-      <div class="add-box">
-        <input type="text" [(ngModel)]="newTitle" placeholder="Co kupiłeś? (np. Pizza)" class="input-title">
-        <input type="number" [(ngModel)]="newAmount" placeholder="Kwota" class="input-amount">
-        <button (click)="addBill()">Dodaj</button>
-      </div>
-
-      <h3>Ostatnie wydatki:</h3>
-      <ul class="bill-list">
-        <li *ngFor="let bill of bills">
-          <div class="bill-info">
-            <strong>{{ bill.title }}</strong>
-            <small>Płacił: {{ bill.payer.name }}</small>
-          </div>
-          <div class="bill-price">
-            {{ bill.amount }} zł
-          </div>
-        </li>
-      </ul>
-
-      <button (click)="clearDebts()" style="background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px;">
-  🚨  Zakończ miesiąc (Wyzeruj długi)
-      </button>
-      
-      <p *ngIf="bills.length === 0">Brak wydatków. Tanio żyjecie! 🤑</p>
-    </div>
-  `,
-  styles: [`
-    .container { padding: 20px; max-width: 600px; font-family: sans-serif; }
-    
-    /* Style dla Podsumowania */
-    .summary-card { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
-    .balance-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
-    .plus { color: green; } /* Ktoś jest na plusie */
-    .minus { color: red; }   /* Ktoś jest na minusie */
-
-    /* Style dla Dodawania */
-    .add-box { display: flex; gap: 10px; margin-bottom: 20px; }
-    .input-title { flex: 2; padding: 8px; }
-    .input-amount { flex: 1; padding: 8px; }
-
-    /* Style dla Listy */
-    .bill-list { list-style: none; padding: 0; }
-    .bill-list li { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; align-items: center; }
-    .bill-price { font-weight: bold; font-size: 1.1em; }
-  `]
+  templateUrl: './expense-list.component.html',
+  styleUrls: ['./expense-list.component.scss']
 })
 export class ExpenseListComponent implements OnInit {
-  bills: Bill[] = [];
-  summary: Summary | null = null;
+  // 1. Zmieniamy typy na "any[]", żeby odblokować HTML i uniknąć konfliktów z Twoim starym plikiem 'bill-model'
+  bills: any[] = [];
+  summary: any[] = [];
 
-  newTitle = '';
-  newAmount: number | null = null;
+  // 2. Zmieniamy nazwy zmiennych, żeby HTML je bez problemu znalazł
+  newBillName = '';
+  newBillAmount: number | null = null;
+  confirmService = inject(ConfirmService);
+  toastService = inject(ToastService);
 
   constructor(private financesService: FinancesService) {}
 
@@ -92,36 +30,59 @@ export class ExpenseListComponent implements OnInit {
   }
 
   refreshData() {
-    // Pobieramy listę rachunków
-    this.financesService.getBills().subscribe(data => this.bills = data);
+    // Pobieramy rachunki
+    this.financesService.getBills().subscribe(data => {
+      this.bills = data.map((b: any) => ({
+        ...b,
+        name: b.title || b.name
+      }));
+    });
     
-    // ORAZ pobieramy podsumowanie (kto komu wisi)
-    this.financesService.getSummary().subscribe(data => this.summary = data);
-  }
-
-  addBill() {
-    if (!this.newTitle || !this.newAmount) return;
-
-    this.financesService.addBill(this.newTitle, this.newAmount).subscribe(() => {
-      // Po dodaniu czyścimy formularz i odświeżamy WSZYSTKO
-      this.newTitle = '';
-      this.newAmount = null;
-      this.refreshData(); // Kluczowe! Żeby od razu zaktualizował się bilans
+    // Pobieramy podsumowanie długów
+    this.financesService.getSummary().subscribe(data => {
+       console.log('Zerkamy co przychodzi z backendu:', data); // <--- Nasz szpieg 🕵️‍♂️
+       
+       // Próbujemy wyciągnąć listę na kilka sposobów:
+       if (Array.isArray(data)) {
+         this.summary = data; // Opcja A: przyszła gotowa lista
+       } else if (data && data.balances) {
+         this.summary = data.balances; // Opcja B: lista była schowana w "balances"
+       } else {
+         this.summary = []; // Jeśli to obiekt innej maści, na razie dajemy pustą listę
+       }
     });
   }
 
-  clearDebts() {
-    const isConfirmed = confirm('⚠️ UWAGA! Czy na pewno rozliczyliście się w gotówce/Blikiem? Ta akcja bezpowrotnie usunie wszystkie rachunki i wyzeruje bilanse!');
+  addBill() {
+    if (!this.newBillName || !this.newBillAmount) return;
+
+    // Przekazujemy zmienne do Twojego serwisu
+    this.financesService.addBill(this.newBillName, this.newBillAmount).subscribe(() => {
+      this.newBillName = '';
+      this.newBillAmount = null;
+      this.refreshData(); 
+    });
+  }
+
+  async clearDebts() {
     
+    // Zamiast confirm(), używamy naszego serwisu z słówkiem 'await' (poczekaj na kliknięcie)
+    const isConfirmed = await this.confirmService.ask(
+      'Wyzerowanie długów', // Tytuł
+      'Czy na pewno rozliczyliście się w gotówce/Blikiem? Ta akcja bezpowrotnie usunie wszystkie rachunki i wyzeruje bilanse!', // Wiadomość
+      'Tak, wyzeruj', // Tekst czerwonego przycisku
+      'Anuluj'        // Tekst szarego przycisku
+    );
+    
+    // Jeśli kliknął "Tak" (true)
     if (isConfirmed) {
       this.financesService.clearDebts().subscribe({
         next: () => {
-          alert('Miesiąc zakończony! Długi wyzerowane. 🍻');
-          this.refreshData(); // Odświeżamy listę (powinna być pusta)
+          this.toastService.show('Miesiąc zakończony! Długi wyzerowane. 🍻', 'success');
+          this.refreshData(); 
         },
-        error: () => alert('Nie udało się wyzerować długów.')
+        error: () => this.toastService.show('Nie udało się wyzerować długów. 🚨', 'error')
       });
     }
   }
-
 }

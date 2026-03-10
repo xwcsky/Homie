@@ -1,1 +1,80 @@
-<p>shopping-list works!</p>
+<div class="max-w-4xl mx-auto p-4 md:p-8 font-sans text-gray-800">
+  
+    <header class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+        Wspólne Zakupy <span class="text-4xl">🛒</span>
+      </h1>
+    </header>
+  
+    <div class="bg-teal-50 border-2 border-teal-200 rounded-3xl p-5 mb-8 shadow-sm">
+      <div class="flex flex-col sm:flex-row gap-4 items-center">
+        <input 
+          type="text" 
+          [(ngModel)]="newItemName" 
+          (keyup.enter)="add()"
+          placeholder="Co trzeba kupić? (np. Mleko, Jajka)"
+          class="flex-1 w-full bg-white border-2 border-gray-300 rounded-2xl px-5 py-4 font-bold text-gray-700 outline-none focus:border-teal-500 text-lg transition-colors"
+        >
+        <button 
+          (click)="add()" 
+          class="w-full sm:w-auto bg-teal-500 hover:bg-teal-400 text-white font-black py-4 px-8 rounded-2xl border-b-4 border-teal-700 active:border-b-0 active:mt-1 transition-all text-lg flex items-center justify-center gap-2"
+        >
+          Dodaj <span>➕</span>
+        </button>
+      </div>
+    </div>
+  
+    <ul class="space-y-4">
+      <li *ngFor="let item of items" 
+          class="bg-white border-2 border-gray-200 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
+          [class.bg-gray-50]="item.isBought">
+        
+        <label class="cursor-pointer flex items-center gap-4 group">
+          <input type="checkbox" class="hidden" [checked]="item.isBought" (change)="toggle(item)">
+          <div class="w-10 h-10 rounded-xl border-4 flex items-center justify-center transition-colors"
+               [ngClass]="item.isBought ? 'bg-teal-500 border-teal-600' : 'bg-gray-100 border-gray-300 group-hover:border-teal-400'">
+            <svg *ngIf="item.isBought" class="w-6 h-6 text-white font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+          </div>
+          
+          <div class="flex flex-col">
+            <span class="text-xl font-black text-gray-800 transition-all" [class.line-through]="item.isBought" [class.text-gray-400]="item.isBought">
+              {{ item.name }}
+            </span>
+            <span *ngIf="item.buyer" class="text-sm font-bold text-teal-600 mt-1 flex items-center gap-1">
+              <div class="w-5 h-5 rounded-full bg-teal-200 flex items-center justify-center text-xs text-teal-800">
+                {{ item.buyer.name.charAt(0) | uppercase }}
+              </div>
+              Kupił(a): {{ item.buyer.name }}
+            </span>
+          </div>
+        </label>
+  
+        <div class="flex items-center gap-3 self-end sm:self-auto w-full sm:w-auto mt-2 sm:mt-0">
+          
+          <button 
+            *ngIf="item.isBought" 
+            (click)="convertToBill(item)" 
+            class="flex-1 sm:flex-none bg-green-500 hover:bg-green-400 text-white font-black py-3 px-4 rounded-2xl border-b-4 border-green-700 active:border-b-0 active:mt-1 transition-all flex items-center justify-center gap-2 animate-pulse"
+            style="animation-iteration-count: 3;"
+          >
+            <span>💸</span> Zmień w wydatek
+          </button>
+  
+          <button 
+            (click)="remove(item.id)" 
+            class="bg-red-100 hover:bg-red-200 text-red-600 p-3 rounded-2xl border-b-4 border-red-300 active:border-b-0 active:mt-1 transition-all"
+          >
+            🗑️
+          </button>
+        </div>
+  
+      </li>
+    </ul>
+    
+    <div *ngIf="items.length === 0" class="bg-teal-50 border-2 border-teal-200 rounded-3xl p-10 text-center mt-6">
+      <span class="text-6xl mb-4 block">🍏</span>
+      <p class="text-teal-900 font-black text-2xl">Lodówka pełna!</p>
+      <p class="text-teal-700 font-medium text-lg">Nie ma nic do kupienia.</p>
+    </div>
+  
+  </div>

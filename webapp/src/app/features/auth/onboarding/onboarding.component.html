@@ -1,1 +1,60 @@
-<p>onboarding works!</p>
+<div class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 md:p-8 font-sans text-gray-800">
+  
+    <header class="text-center mb-10">
+      <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">Prawie gotowe! 🚀</h1>
+      <p class="text-xl font-bold text-gray-500">Aby zacząć korzystać z apki, potrzebujesz swoich czterech kątów.</p>
+    </header>
+  
+    <div *ngIf="errorMessage" class="bg-red-50 border-2 border-red-200 text-red-700 font-bold p-4 rounded-2xl mb-8 flex items-center gap-3 animate-pulse max-w-2xl w-full">
+      <span class="text-xl">⚠️</span> {{ errorMessage }}
+    </div>
+  
+    <div class="flex flex-col md:flex-row gap-8 w-full max-w-4xl">
+      
+      <div class="flex-1 bg-amber-50 border-2 border-amber-200 rounded-3xl p-8 shadow-sm relative overflow-hidden flex flex-col">
+        <div class="absolute -top-6 -right-6 text-8xl opacity-10 cursor-default select-none">👑</div>
+        
+        <h2 class="text-2xl font-black text-amber-900 mb-2 relative z-10">Stwórz nowe mieszkanie</h2>
+        <p class="text-amber-700 font-bold mb-8 relative z-10 flex-1">
+          Będziesz założycielem. Po stworzeniu otrzymasz kod zaproszenia, który wyślesz reszcie ekipy.
+        </p>
+  
+        <div class="relative z-10">
+          <label class="block font-bold text-amber-800 mb-2 ml-1 uppercase text-xs tracking-wider">Jak nazwiecie swój rewir?</label>
+          <input type="text" [(ngModel)]="newFlatName" (keyup.enter)="createFlat()" placeholder="np. Nora na Wilanowie" 
+                 class="w-full bg-white border-2 border-amber-300 rounded-2xl px-5 py-4 font-bold text-gray-800 outline-none focus:border-amber-500 transition-colors mb-4">
+          
+          <button (click)="createFlat()" 
+                  class="w-full bg-amber-500 hover:bg-amber-400 text-white font-black py-4 px-6 rounded-2xl border-b-4 border-amber-700 active:border-b-0 active:mt-1 transition-all text-lg flex justify-center items-center gap-2">
+            Zakładam rewir <span>🛠️</span>
+          </button>
+        </div>
+      </div>
+  
+      <div class="flex-1 bg-indigo-50 border-2 border-indigo-200 rounded-3xl p-8 shadow-sm relative overflow-hidden flex flex-col">
+        <div class="absolute -top-6 -right-6 text-8xl opacity-10 cursor-default select-none">🤝</div>
+        
+        <h2 class="text-2xl font-black text-indigo-900 mb-2 relative z-10">Dołącz do znajomych</h2>
+        <p class="text-indigo-700 font-bold mb-8 relative z-10 flex-1">
+          Ktoś z Twoich współlokatorów założył już mieszkanie? Świetnie! Po prostu wpisz kod, który Ci podał.
+        </p>
+  
+        <div class="relative z-10">
+          <label class="block font-bold text-indigo-800 mb-2 ml-1 uppercase text-xs tracking-wider">Podaj kod zaproszenia</label>
+          <input type="text" [(ngModel)]="joinCode" (keyup.enter)="joinFlat()" placeholder="np. X7Y9Z" 
+                 class="w-full bg-white border-2 border-indigo-300 rounded-2xl px-5 py-4 font-black text-indigo-900 outline-none focus:border-indigo-500 transition-colors mb-4 text-center tracking-widest uppercase">
+          
+          <button (click)="joinFlat()" 
+                  class="w-full bg-indigo-500 hover:bg-indigo-400 text-white font-black py-4 px-6 rounded-2xl border-b-4 border-indigo-700 active:border-b-0 active:mt-1 transition-all text-lg flex justify-center items-center gap-2">
+            Wchodzę z kodem <span>🔑</span>
+          </button>
+        </div>
+      </div>
+  
+    </div>
+    <div class="mt-12 text-center w-full">
+        <button (click)="logout()" class="text-gray-400 font-bold hover:text-red-500 transition-colors flex items-center justify-center gap-2 mx-auto px-6 py-3 rounded-2xl hover:bg-red-50">
+          <span>🚪</span> Zalogowano na złe konto? Wyloguj się
+        </button>
+      </div>
+  </div>

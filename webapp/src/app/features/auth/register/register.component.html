@@ -1,1 +1,46 @@
-<p>register works!</p>
+<div class="min-h-screen bg-purple-50 flex items-center justify-center p-4 font-sans text-gray-800">
+  
+    <div class="bg-white border-2 border-purple-200 rounded-3xl p-8 w-full max-w-md shadow-sm relative overflow-hidden">
+      <div class="absolute -top-10 -right-10 text-9xl opacity-10 cursor-default select-none">✨</div>
+      
+      <div class="relative z-10">
+        <h1 class="text-3xl font-black text-purple-900 mb-2">Dołącz do nas! 🥳</h1>
+        <p class="text-purple-700 font-bold mb-8">Zbudujmy razem idealne mieszkanie.</p>
+  
+        <div *ngIf="errorMessage" class="bg-red-50 border-2 border-red-200 text-red-700 font-bold p-4 rounded-2xl mb-6 flex items-center gap-3 animate-pulse">
+          <span class="text-xl">⚠️</span>
+          {{ errorMessage }}
+        </div>
+  
+        <div class="space-y-5">
+          <div>
+            <label class="block font-bold text-gray-700 mb-2 ml-1 uppercase text-xs tracking-wider">Jak masz na imię?</label>
+            <input type="text" [(ngModel)]="name" placeholder="np. Kuba" 
+                   class="w-full bg-gray-50 border-2 border-gray-300 rounded-2xl px-5 py-4 font-bold text-gray-800 outline-none focus:border-purple-500 focus:bg-white transition-colors">
+          </div>
+  
+          <div>
+            <label class="block font-bold text-gray-700 mb-2 ml-1 uppercase text-xs tracking-wider">Email</label>
+            <input type="email" [(ngModel)]="email" placeholder="twoj@email.com" 
+                   class="w-full bg-gray-50 border-2 border-gray-300 rounded-2xl px-5 py-4 font-bold text-gray-800 outline-none focus:border-purple-500 focus:bg-white transition-colors">
+          </div>
+          
+          <div>
+            <label class="block font-bold text-gray-700 mb-2 ml-1 uppercase text-xs tracking-wider">Hasło</label>
+            <input type="password" [(ngModel)]="password" (keyup.enter)="onSubmit()" placeholder="••••••••" 
+                   class="w-full bg-gray-50 border-2 border-gray-300 rounded-2xl px-5 py-4 font-bold text-gray-800 outline-none focus:border-purple-500 focus:bg-white transition-colors">
+          </div>
+  
+          <button (click)="onSubmit()" 
+                  class="w-full mt-4 bg-purple-500 hover:bg-purple-400 text-white font-black py-4 px-6 rounded-2xl border-b-4 border-purple-700 active:border-b-0 active:mt-5 transition-all text-lg flex items-center justify-center gap-2">
+            Załóż konto <span>✌️</span>
+          </button>
+        </div>
+  
+        <p class="mt-8 text-center font-bold text-gray-500">
+          Masz już konto? 
+          <a routerLink="/login" class="text-purple-600 hover:text-purple-500 border-b-2 border-purple-200 hover:border-purple-500 transition-colors pb-1 ml-1">Zaloguj się</a>
+        </p>
+      </div>
+    </div>
+  </div>

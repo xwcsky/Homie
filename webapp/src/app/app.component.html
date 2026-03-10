@@ -1,20 +1,49 @@
-<nav style="display: flex; gap: 20px; padding: 15px; background: #e1f5fe; border-bottom: 2px solid #0288d1;">
-  <div style="font-weight: bold; font-size: 1.2rem;">🏠 Homie</div>
-  
-  <div style="display: flex; gap: 15px; flex-grow: 1;">
-    <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-    <a routerLink="/finances" routerLinkActive="active">Finanse</a>
-    <a routerLink="/shopping" routerLinkActive="active">Zakupy</a>
-    <a routerLink="/chores" routerLinkActive="active">Obowiązki</a>
-    <a routerLink="/board" routerLinkActive="active">Tablica 📌</a> 
-    <a routerLink="/settings" routerLinkActive="active">Ustawienia ⚙️</a> 
-  </div>
+<app-toast></app-toast>
+<app-confirm></app-confirm>
+<app-prompt></app-prompt>
+<nav *ngIf="!isAuthPage" class="fixed bottom-0 left-0 w-full z-50 bg-white border-t-2 border-gray-200 md:relative md:top-0 md:bottom-auto md:border-t-0 md:border-b-2 md:shadow-sm">
+  <div class="max-w-6xl mx-auto px-2 md:px-4">
+    <div class="flex justify-around md:justify-center md:space-x-4 items-center h-16 md:h-20 pb-safe">
+      
+      <a routerLink="/dashboard" 
+         routerLinkActive="!text-blue-600 !bg-blue-50 !border-blue-200" 
+         class="flex flex-col md:flex-row items-center justify-center w-full md:w-auto p-2 md:px-6 md:py-3 rounded-2xl md:border-2 border-transparent text-gray-400 hover:bg-gray-50 hover:text-gray-800 transition-all font-bold group">
+        <span class="text-2xl md:text-xl md:mr-2 group-active:scale-90 transition-transform">🏠</span>
+        <span class="text-[10px] md:text-sm mt-1 md:mt-0 uppercase tracking-wider">Pulpit</span>
+      </a>
 
-  <div>
-    <a routerLink="/login">Wyloguj (Login)</a>
+      <a routerLink="/chores" 
+         routerLinkActive="!text-amber-600 !bg-amber-50 !border-amber-200" 
+         class="flex flex-col md:flex-row items-center justify-center w-full md:w-auto p-2 md:px-6 md:py-3 rounded-2xl md:border-2 border-transparent text-gray-400 hover:bg-gray-50 hover:text-gray-800 transition-all font-bold group">
+        <span class="text-2xl md:text-xl md:mr-2 group-active:scale-90 transition-transform">🧹</span>
+        <span class="text-[10px] md:text-sm mt-1 md:mt-0 uppercase tracking-wider">Grafik</span>
+      </a>
+
+      <a routerLink="/shopping" 
+         routerLinkActive="!text-teal-600 !bg-teal-50 !border-teal-200" 
+         class="flex flex-col md:flex-row items-center justify-center w-full md:w-auto p-2 md:px-6 md:py-3 rounded-2xl md:border-2 border-transparent text-gray-400 hover:bg-gray-50 hover:text-gray-800 transition-all font-bold group">
+        <span class="text-2xl md:text-xl md:mr-2 group-active:scale-90 transition-transform">🛒</span>
+        <span class="text-[10px] md:text-sm mt-1 md:mt-0 uppercase tracking-wider">Zakupy</span>
+      </a>
+
+      <a routerLink="/finances" 
+         routerLinkActive="!text-emerald-600 !bg-emerald-50 !border-emerald-200" 
+         class="flex flex-col md:flex-row items-center justify-center w-full md:w-auto p-2 md:px-6 md:py-3 rounded-2xl md:border-2 border-transparent text-gray-400 hover:bg-gray-50 hover:text-gray-800 transition-all font-bold group">
+        <span class="text-2xl md:text-xl md:mr-2 group-active:scale-90 transition-transform">💸</span>
+        <span class="text-[10px] md:text-sm mt-1 md:mt-0 uppercase tracking-wider">Rachunki</span>
+      </a>
+
+      <a routerLink="/settings" 
+         routerLinkActive="!text-indigo-600 !bg-indigo-50 !border-indigo-200" 
+         class="flex flex-col md:flex-row items-center justify-center w-full md:w-auto p-2 md:px-6 md:py-3 rounded-2xl md:border-2 border-transparent text-gray-400 hover:bg-gray-50 hover:text-gray-800 transition-all font-bold group">
+        <span class="text-2xl md:text-xl md:mr-2 group-active:scale-90 transition-transform">⚙️</span>
+        <span class="text-[10px] md:text-sm mt-1 md:mt-0 uppercase tracking-wider">Konto</span>
+      </a>
+
+    </div>
   </div>
 </nav>
 
-<main style="padding: 20px;">
+<main class="mb-20 md:mb-0 bg-white min-h-screen">
   <router-outlet></router-outlet>
 </main>
